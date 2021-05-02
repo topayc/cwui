@@ -1,0 +1,182 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="Cache-Control" content="no-cache"/> 
+	<meta http-equiv="Expires" content="0"/>
+	<meta http-equiv="Pragma" content="no-cache"/> 
+	<title></title>
+	
+    <script type="text/javascript">
+		require([GINI_MANIFEST["cwui.js"]], function(_ini) {
+			
+			var _handleInfo = requirejs("jquery")("#INI_change_area").data("GINI_handleInfo");
+			
+			// submit이전 Logic
+			function previousSubmit(pwd){
+				_handleInfo.serviceInfo.setParameter("PWD", pwd);
+				_handleInfo.serviceInfo.setParameter("pwdId", "INI_CertPwd");
+				_ini.KeyPad.getKeyPadValue(_handleInfo, submitProc, "NONCE");
+			};
+			
+			function callbackDownload(param){
+				// 20161231 : 처리 완료 메시지 위치 변경 -> externalResponseFactory
+				//INI_HANDLE.infoMessage(_ini.msgFactory.getMessageFactory().Info.INFO_1003 );	//인증서 내보내기를 완료 하였습니다.
+				//목록으로 돌아가기
+				_handleInfo.serviceInfo.setParameter("CERT_ID", undefined);
+				_ini.StorageManage.setFocusStorage(_handleInfo.serviceInfo.getDeviceId());
+    			_ini.StorageManage.storageClick(_handleInfo);
+			}
+			
+			function submitProc(pwd){
+				if((pwd === undefined) || (pwd === null) || (pwd === '')){
+					INI_HANDLE.warnMessage(_ini.msgFactory.getMessageFactory().Warn.WARN_1012);
+				 	return;
+				}
+				_handleInfo.serviceInfo.setParameter("PWD", pwd);
+				_handleInfo.serviceInfo.setCallback(callbackDownload);
+				_handleInfo.serviceInfo.setExceptionCallback(
+  	 					function(){
+  	 						_ini.KeyPad.initializeKeyPad(_handleInfo);
+  	 					}
+					);
+				_ini.CertManager.exportCertPriP12File(_handleInfo);
+			}
+			
+			requirejs("jquery")(document).ready(function() {
+				// ------------------- 메세지 처리 Start -------------------------------------------------------------------------------------------------------- //
+    			// --------------------------------------------------------------------------------------------------------------------------------------------- //
+				requirejs("jquery")("#INI_cert_second_modal_title").html(_ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_EXPORT().W_T_C_E_001);
+				requirejs("jquery")("#INI_cert_second_modal_sub_title").html('<img src="' + GINI_HTML5_BASE_PATH + '/res/img/icon/certificate2.png" alt="" />' + _ini.msgFactory.getMessageFactory().WebForm().TEXT().COMMON().W_T_005);
+				requirejs("jquery")("#INI_cert_export_passwd_label").text(_ini.msgFactory.getMessageFactory().WebForm().TEXT().COMMON().W_T_004);
+				requirejs("jquery")("#INI_cert_export_text").html(_ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_EXPORT().W_T_C_E_002);
+				document.getElementById("INI_CertPwd").setAttribute("placeholder", _ini.msgFactory.getMessageFactory().WebForm().TEXT().COMMON().W_T_003);
+				
+				//확인 , 취소 버튼
+				requirejs("jquery")("#INI_certExportSubmit").text(_ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_001);
+    			requirejs("jquery")("#INI_secondClose").text(_ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_002);
+    			// ------------------- 메세지 처리   End -------------------------------------------------------------------------------------------------------- //
+				// --------------------------------------------------------------------------------------------------------------------------------------------- //
+				
+				_handleInfo.optionInfo.setParameter("CERT_VIEW_TYPE", _ini.constants.Certs.CERTIFICATE_NORMAL_ATTR);
+				_handleInfo.serviceInfo.setCallback(_ini.WebForm.drawCertAttrDetail)
+				_handleInfo.serviceInfo.setExceptionCallback(
+  	 					function(){
+  	 						_ini.KeyPad.initializeKeyPad(_handleInfo);
+  	 					}
+					);
+				
+				// 내보내기 상세 인증서 정보
+				_ini.Certs.getCertAttributeInfo(_handleInfo);
+				
+				_handleInfo.serviceInfo.setParameter("virtualCloseCallback", function (){_ini.KeyPad.initializeKeyPad(_handleInfo);});
+				_handleInfo.serviceInfo.setParameter("KeypadFrmName" ,"keypadFrm");
+				_handleInfo.serviceInfo.setBehavior(_ini.constants.WebForm.ACTION_CERT_EXPORT_FILE);
+				_ini.KeyPad.initializeKeyPad(_handleInfo);
+				
+				// 내보내기
+				requirejs("jquery")('#INI_certExportSubmit').click(function(){
+					var pwd = requirejs("jquery")('input[name="INI_CertPwd"]').val();
+					_handleInfo.serviceInfo.setParameter("PWD", pwd);
+					_handleInfo.serviceInfo.setParameter("pwdId", "INI_CertPwd");
+					_handleInfo.serviceInfo.setParameter("previousSubmit", previousSubmit);
+					_ini.KeyPad.run(_handleInfo);
+				});
+				
+				requirejs("jquery")('#INI_CertPwd_tk_btn').click(function(){
+					if(_handleInfo.serviceInfo.getParameter("CERT_ID") == undefined){
+						INI_HANDLE.warnMessage(_ini.msgFactory.getMessageFactory().Warn.WARN_1015);
+						requirejs("jquery")('#INI_CertPwd').focus();
+					 	return;
+					}
+					requirejs("jquery")('#INI_CertPwd').val("");
+					GINI_ProtectMgr.clean("NONCE");
+					
+					function EnterNext(){    		
+						requirejs("jquery")('#INI_certExportSubmit').focus().click();    								
+   	    			}
+					
+					_handleInfo.serviceInfo.setParameter("pwdId", "INI_CertPwd");
+					_handleInfo.serviceInfo.setParameter("pwdElement", document.keypadFrm.INI_CertPwd);
+					_handleInfo.serviceInfo.setParameter("previousSubmit", previousSubmit);
+					
+					
+					_ini.KeyPad.click(_handleInfo,"KEYPAD");
+					_ini.KeyPad.setEnterCallback(EnterNext);
+    			});
+    		
+				/* 가상키패드 or E2E Click */
+    			requirejs("jquery")('#INI_CertPwd').click(function(){
+    				if(_handleInfo.serviceInfo.getParameter("CERT_ID") == undefined){
+							INI_HANDLE.warnMessage(_ini.msgFactory.getMessageFactory().Warn.WARN_1015);
+							requirejs("jquery")('#INI_CertPwd').focus();
+						 	return;
+						}
+    				requirejs("jquery")('#INI_CertPwd').val("");
+    				GINI_ProtectMgr.clean("NONCE");
+    				
+    				_handleInfo.serviceInfo.setParameter("pwdId", "INI_CertPwd");
+    				_handleInfo.serviceInfo.setParameter("pwdElement", document.keypadFrm.INI_CertPwd);
+    				_handleInfo.serviceInfo.setParameter("previousSubmit", previousSubmit);
+    				
+    				//_handleInfo.serviceInfo.setParameter("ENCRYPTED","TRUE");
+    				_ini.KeyPad.click(_handleInfo,"KEYBOARD");  				
+    				
+    			});
+				
+    			requirejs("jquery")('[type=password]').keypress(function(e) {
+ 				    if(e.which == 13) {
+ 				    	requirejs("jquery")('#INI_certExportSubmit').focus().click();
+ 			        	return false;
+ 				    }
+ 				});
+
+				// 목록으로 돌아가기
+				requirejs("jquery")('#INI_secondClose').click(function(){
+					_handleInfo.serviceInfo.setParameter("CERT_ID", undefined);
+					_ini.StorageManage.setFocusStorage(_handleInfo.serviceInfo.getDeviceId());
+	    			_ini.StorageManage.storageClick(_handleInfo);
+				});
+				
+			});
+		});
+	</script>
+</head>
+<body>
+
+	<!--인증서 보기 -->
+	 <div class="certificate_view_area">
+	     <h2 class="section_title" id="INI_cert_second_modal_title"></h2>
+	     <dl class="info_data">
+	         <dt class="title" id="INI_cert_second_modal_sub_title"></dt>
+	         <dd>
+				<div class="summary" id="INI_cert_single"></div>
+	         </dd>
+	     </dl>
+	 </div>
+	
+	 <!-- //인증서 보기 -->
+	 <fieldset>
+		<legend>Certificate Password</legend>
+		<!-- 인증서 암호 입력 -->
+	 	<form class="certificate_password" id="keypadFrm" name="keypadFrm">
+			<dl class="certificate_password">
+				<dt class="section_title" id="INI_cert_export_passwd_label"></dt>
+				<dd>
+					<input type="password" title="password" id="INI_CertPwd" name="INI_CertPwd" />
+					<span class="keyboard" id="INI_CertPwd_tk_btn"></span>
+				</dd>
+			</dl>
+		</form>
+		<!-- //인증서 암호 입력 -->
+		<p class="align_center pdt20" id="INI_cert_export_text"></p>
+		<!-- 버튼 영역 -->
+		<div class="confirm_btn_area">
+			<button type="button" class="emp" id="INI_certExportSubmit"></button>
+			<button type="button" class="cancel" id="INI_secondClose"></button>
+		</div>
+		<!-- //버튼 영역 -->
+	</fieldset>
+
+</body>
+</html>

@@ -1,0 +1,53 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="Cache-Control" content="no-cache"/> 
+	<meta http-equiv="Expires" content="0"/>
+	<meta http-equiv="Pragma" content="no-cache"/>
+    <title></title>
+    <script type="text/javascript">
+    require([GINI_MANIFEST["cwui.js"]], function(_ini) {
+    	
+    	   
+	    requirejs("jquery")(document).ready(function () {
+	    	
+	    	var _handleInfo = requirejs("jquery")("#INI_mainModalDialog").data("GINI_handleInfo");
+
+	    	_handleInfo.optionInfo.setParameter("CERT_VIEW_TYPE", _ini.constants.Certs.CERTIFICATE_DETAIL_ATTR);
+			_handleInfo.serviceInfo.setCallback(_ini.InnerWebForm.drawCertDetail);
+	    	_ini.Certs.getCertAttributeInfo(_handleInfo);
+			
+	    	/* 메세지 처리 공통 처리 */
+			requirejs("jquery")("#INI_cert_second_modal_title").text(_ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_DETAIL().W_T_C_D_001);	
+			requirejs("jquery")("#INI_secondClose").val(_ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_017);
+			// 창닫기 Alt
+			requirejs("jquery")("#img_close").attr({
+				alt		: _ini.msgFactory.getMessageFactory().WebForm().ALT().W_ALT_001
+				,title	: _ini.msgFactory.getMessageFactory().WebForm().WEB_ACT_TITLE().WEB_ACT_TITLE_001
+			});
+			
+		 	// 모달창 닫기
+			requirejs("jquery")('#INI_secondClose').click(function(){
+				 requirejs("jquery")("#INI_mainModalDialog").dialog('close');
+			});	 	
+			
+	    });
+    });
+    </script>
+</head>
+<body>
+     <div class="inner_initech_certificat_view">
+        <div class="top_title" id="INI_cert_second_modal_title">
+        		<span>
+        			<img id="img_close" src="images/icon/close.gif" alt="창닫기" title=""  />
+        		</span>
+        </div>      
+        <div class="view_data" id="INI_cert_detail_list"></div>
+        <div class="bottom_btn">
+            <input type="button" class="no" value="" id="INI_secondClose" />
+        </div>
+    </div>  
+    
+</body>
+</html>

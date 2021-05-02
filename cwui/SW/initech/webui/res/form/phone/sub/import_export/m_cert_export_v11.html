@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, target-densitydpi=device-dpi" />
+	<title></title>
+
+	<script type="text/javascript">
+	 	require([GINI_MANIFEST["cwui.js"]], function(_ini) {
+	 		
+	   		var _handleInfo;
+    		
+			// 초기화
+			function initialize(){
+				_handleInfo = requirejs("jquery")("#INI_ModalDialog_03").data("GINI_handleInfo");
+			};
+			
+			function submitProc(INI_authNum){
+				if((INI_authNum === undefined) || (INI_authNum === null) || (INI_authNum === '')){
+					INI_HANDLE.warnMessage(_ini.msgFactory.getMessageFactory().Warn.WARN_1012);
+					requirejs("jquery")('#INI_authNum').focus();
+				 	return;
+				}
+				
+				function doCallBack(result){
+					requirejs("jquery")("#INI_cert_export_btn1_div").hide();
+					requirejs("jquery")("#INI_cert_export_btn2_div").show();
+				}
+				
+   				_handleInfo.serviceInfo.setParameter("AUTH_NUM", INI_authNum);
+   				_handleInfo.serviceInfo.setCallback(doCallBack);
+
+   				_ini.CertManager.certImportExport.exportCertV11(_handleInfo, doCallBack);
+			};
+			
+			requirejs("jquery")(document).ready(function() {
+				initialize();
+				
+				// 메세지 공통 처리
+				requirejs("jquery")("#msg_cert_export_header").text(_ini.msgFactory.getMessageFactory().WebForm().TITLE().CERT_EXPORT_TITLE); //인증서 내보내기
+				requirejs("jquery")("#export_png_id").attr("src",GINI_HTML5_BASE_PATH + "/res/img/mobile/common/dum_cert_export.png");
+				requirejs("jquery")(".prev").html('<img src="' + GINI_HTML5_BASE_PATH + '/res/img/mobile/common/dum_btn_prev.png" alt="'+_ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_003+'" />');
+				
+				requirejs("jquery")("#msg_noti1").html( _ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_SEARCH().W_T_C_S_023 );		//PC에서 신한은행 홈페이지에 접속하여 메인 화면의 <em>‘금융 서비스 → 모바일’ 페이지에서 ‘스마트폰 → PC 인증서 복사’</em> 버튼을 선택하시기 바랍니다.
+				requirejs("jquery")("#msg_noti2").html( _ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_SEARCH().W_T_C_S_024 );		//PC에 복사할 인증서 암호를 입력 후 위의 <em>인증번호 8자리를 입력</em>하시고 다음 버튼을 선택하시기 바랍니다.
+				requirejs("jquery")("#msg_noti3").html( _ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_SEARCH().W_T_C_S_025 );		//스마트폰에서 PC로 인증서 복사 완료 시 <em>스마트폰 및 PC에서 완료 안내를 확인</em>하시기 바랍니다.
+				requirejs("jquery")("#INI_cert_export_title_msg").html( _ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_IMPORT_EXPORT().C_I_E_012 );		//스마트폰에서 PC로 인증서 복사 완료 시 <em>스마트폰 및 PC에서 완료 안내를 확인</em>하시기 바랍니다.
+
+				requirejs("jquery")("#INI_cert_export_submit").html( _ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_001);		//스마트폰에서 PC로 인증서 복사 완료 시 <em>스마트폰 및 PC에서 완료 안내를 확인</em>하시기 바랍니다.
+				requirejs("jquery")("#INI_cert_export_cancel").html( _ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_002);		//스마트폰에서 PC로 인증서 복사 완료 시 <em>스마트폰 및 PC에서 완료 안내를 확인</em>하시기 바랍니다.
+				requirejs("jquery")("#INI_cert_export_complete").html( _ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_001);		//스마트폰에서 PC로 인증서 복사 완료 시 <em>스마트폰 및 PC에서 완료 안내를 확인</em>하시기 바랍니다.
+				
+				requirejs("jquery")('.prev').click(function (e) {
+					requirejs("jquery")("#INI_subModalDialog").dialog('close');
+					requirejs("jquery")("#INI_ModalDialog_03").dialog('close');
+				});
+				
+				requirejs("jquery")('#INI_cert_export_cancel').click(function (e) {
+					requirejs("jquery")("#INI_subModalDialog").dialog('close');
+					requirejs("jquery")("#INI_ModalDialog_03").dialog('close');
+				});
+				
+				requirejs("jquery")('#INI_cert_export_complete').click(function (e) {
+					requirejs("jquery")("#INI_mainModalDialog").dialog('close');
+					requirejs("jquery")("#INI_subModalDialog").dialog('close');
+					requirejs("jquery")("#INI_ModalDialog_03").dialog('close');
+				});
+				
+				//확인 버튼
+				requirejs("jquery")('#INI_cert_export_submit').click(function(){
+    				var INI_authNum = requirejs("jquery")('input[name="INI_authNum"]').eq(0).val() + requirejs("jquery")('input[name="INI_authNum"]').eq(1).val();
+    				submitProc(INI_authNum);
+    			});
+	    	});
+		});	
+	 	
+	</script>
+	
+</head>
+<body>
+    <div class="m-initech-certificate-wrap" id="m-initech-certificate-wrap">        
+        <header class="sticky">
+            <div class="inner-wrap">
+                <h1  id="msg_cert_export_header"></h1>
+                <a href="javascript:void(null);return false;" class="prev"></a>
+            </div>
+        </header>
+        <section class="m-ini-cert-cont">
+            <div class="inner-wrap">
+                <!-- 인증서 찾기 -->
+                <div class="m-ini-cert-manage export">
+					<p id="INI_cert_export_title_msg"></p>
+                    <span class="icon export"><img src="#" id="export_png_id" alt=""></span>
+					<p></p>
+                    <div class="table">          
+                        <span class="input-wrap"><input name="INI_authNum" type="number" pattern="[0-9]*" maxlength="4" oninput="INI_maxLengthCheck(this);" onkeydown="return INI_onlyNumber(event)" onkeyup="INI_removeChar(event)" ></span>
+                        <span>&nbsp;</span>
+                        <span class="input-wrap"><input name="INI_authNum" type="number" pattern="[0-9]*" maxlength="4" oninput="INI_maxLengthCheck(this);" onkeydown="return INI_onlyNumber(event)" onkeyup="INI_removeChar(event)" ></span>
+                    </div>
+                </div>
+				<p></p>
+                <!-- 버튼 영역 -->
+                <div class="m-ini-mcert-btns" id="INI_cert_export_btn1_div">
+                    <span id="INI_BACK_BTN"><a href="javascript:void(null);return false;" id="INI_cert_export_cancel"></a></span>
+                    <span>&nbsp;</span>
+                    <span><a href="javascript:void(null);return false;" class="emp" id="INI_cert_export_submit"></a></span>
+                </div>
+                <div class="m-ini-mcert-btns" style="display: none;" id="INI_cert_export_btn2_div">
+                    <span id="INI_BACK_BTN"><a href="javascript:void(null);return false;" id="INI_cert_export_complete"></a></span>
+                </div>
+                <!-- // 버튼 영역 -->
+                <ul class="panel notice">
+                    <li id="msg_noti1"><i class="num">1</i></li>
+                    <li id="msg_noti2"><i class="num">2</i></li>
+                    <li id="msg_noti3"><i class="num">3</i></li>
+                </ul>
+            </div>
+        </section> <!-- // .cert-contents -->
+    </div>
+</body>
+</html>

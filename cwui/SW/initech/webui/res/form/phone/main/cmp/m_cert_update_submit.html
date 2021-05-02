@@ -1,0 +1,202 @@
+﻿<!DOCTYPE html> 
+<html> 
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="Cache-Control" content="no-cache"/> 
+	<meta http-equiv="Expires" content="0"/>
+	<meta http-equiv="Pragma" content="no-cache"/> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, target-densitydpi=device-dpi" />
+	<title></title>
+	
+	<script type="text/javascript">
+		var _GINI_saveCertificate;
+		var _handleInfo;
+		var _newPwd;
+		var _newPwdCf;
+	
+	 	require([GINI_MANIFEST["cwui.js"]], function(_ini) {
+	 		
+	 		// color pack css 세팅
+    	    _ini.WebForm.getColorPackCss();
+    	    var _thisModalId = "INI_mainModalDialog";
+    	    
+			// 초기화
+			function initialize(){
+				_handleInfo = requirejs("jquery")("#" + _thisModalId).data("GINI_handleInfo");
+				
+				_handleInfo.serviceInfo.setEventDeviceId(_ini.constants.Certs.STORAGE_BROWSER);
+				_handleInfo.serviceInfo.setDeviceSub(undefined);
+				
+				_handleInfo.serviceInfo.setParameter("KeypadFrmName" ,"keypadFrm");
+	    		_ini.KeyPad.initializeKeyPad(_handleInfo);
+			};
+			
+			function finalSubmit(){
+    			
+				function doUpdateCertificateCB(data){
+					//_handleInfo.stateInfo.setResult("CONFIRM");
+					// 인증서 갱신 시 이전 인증서 개인키가 필요 하여 상태 값을 변경 한다.
+					_handleInfo.stateInfo.setResult("CERT_UPDATE");
+					_ini.WebForm.closeModal();
+				}
+				
+   				_handleInfo.serviceInfo.setParameter("PWD", _newPwd);
+    			_handleInfo.serviceInfo.setParameter("PWD_CNF", _newPwdCf);
+    			_newPwd = "";
+    			_newPwdCf = "";
+    			
+   				_handleInfo.serviceInfo.setCallback(doUpdateCertificateCB);
+   				_handleInfo.serviceInfo.setExceptionCallback(
+   						function(){
+   							_handleInfo.serviceInfo.setParameter("PWD", "");
+   							_handleInfo.serviceInfo.setParameter("PWD_CNF", "");
+   	 						requirejs("jquery")('input[name="INI_newCertPw_cf"]').val("");
+   	 						requirejs("jquery")('input[name="INI_newCertPw"]').val("");
+   	 						GINI_ProtectMgr.clean("NONCE");
+   	 						GINI_ProtectMgr.clean("NEW_NONCE_CNF");
+   	 					}
+   	 				);
+   				
+   				_ini.CertManager.updateCertificate(_handleInfo);
+    		}
+			
+			_GINI_saveCertificate = function(){
+    			
+				function doUpdateCertificateCB(data){
+					_handleInfo.stateInfo.setResult("CONFIRM");
+					_ini.WebForm.closeModal();
+				}
+				
+    			var newPwd = requirejs("jquery")('input[name="INI_newCertPw"]').val();
+    			var newPwd_cf = requirejs("jquery")('input[name="INI_newCertPw_cf"]').val();
+    			
+    			if(!_newPwd || !_newPwdCf){
+    				// 패스워드가 입력 되지 않을 경우.
+    				INI_HANDLE.warnMessage(_ini.msgFactory.getMessageFactory().Warn.WARN_1012);
+    				requirejs("jquery")('#INI_newCertPw').focus();
+    				return;
+    			}
+    			
+    			if((_handleInfo.serviceInfo.getDeviceId() === undefined)){
+    				// deviceId가 없을 경우.
+    				INI_HANDLE.warnMessage(_ini.msgFactory.getMessageFactory().Warn.WARN_1019);
+    				requirejs("jquery")('#INI_newCertPw').focus();
+    				return;
+    			}
+    			
+    			_handleInfo.serviceInfo.setParameter("PWD", _newPwd);
+				_handleInfo.serviceInfo.setParameter("PWD_CNF", _newPwdCf);
+				_newPwd = "";
+    			_newPwdCf = "";
+    			
+   				_handleInfo.serviceInfo.setCallback(doUpdateCertificateCB);
+
+   				_ini.CertManager.updateCertificate(_handleInfo);
+    		}
+			
+			requirejs("jquery")(document).ready(function() {
+				
+				// title
+    			requirejs("jquery")("#INI_cert_modal_title").text(_ini.msgFactory.getMessageFactory().WebForm().TITLE().CERT_UPDATE_TITLE);
+    			requirejs("jquery")("#INI_cert_password_title").text(_ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_CHANGE_PW().W_T_C_CP_002);
+    			requirejs("jquery")("#INI_cert_password_confirm").text(_ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_CHANGE_PW().W_T_C_CP_008);
+				
+    			// button
+    			requirejs("jquery")("#INI_certSubmit").val(_ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_013);
+    			requirejs("jquery")("#INI_certClose").val(_ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_002);
+				
+    			requirejs("jquery")(".prev").html('<img src="' + GINI_HTML5_BASE_PATH + '/res/img/mobile/common/dum_btn_prev.png" alt="'+_ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_003+'" />');
+    			requirejs("jquery")(".msg_placeholder").attr("placeholder" , _ini.msgFactory.getMessageFactory().WebForm().TEXT().COMMON().W_T_004  );		// 인증서 암호를 입력해 주세요
+    			
+    			// 인증서 발급 버튼 클릭 
+    			requirejs("jquery")('#INI_certSubmit').click(function(){
+    				_GINI_saveCertificate();
+    			});
+    			
+    			// close
+    			requirejs("jquery")('#INI_certClose').click(function(){
+    				_ini.WebForm.closeModal();
+    			});
+    			
+    			requirejs("jquery")('#INI_newCertPw').click(function(){
+    				requirejs("jquery")('#INI_newCertPw').val("");
+    				GINI_ProtectMgr.clean("NONCE");
+    				
+   					function inNewPwdCallback(newPwd){
+   						_newPwd = newPwd;
+   					}
+   					
+    				_handleInfo.serviceInfo.setParameter("pwdId", "INI_newCertPw");
+    				_handleInfo.serviceInfo.setParameter("pwdElement", document.keypadFrm.INI_newCertPw);
+    				_handleInfo.serviceInfo.setParameter("previousSubmit", inNewPwdCallback);
+    				_ini.KeyPad.click(_handleInfo);
+    			});
+    			requirejs("jquery")('#INI_newCertPw_cf').click(function(){
+    				requirejs("jquery")('#INI_newCertPw_cf').val("");
+    				GINI_ProtectMgr.clean("NEW_NONCE_CNF");
+    				
+   					function inNewPwdCfCallback(newPwdCf){
+   						_newPwdCf = newPwdCf;
+   						finalSubmit();
+   					}
+    				_handleInfo.serviceInfo.setParameter("pwdId", "INI_newCertPw_cf");
+    				_handleInfo.serviceInfo.setParameter("pwdElement", document.keypadFrm.INI_newCertPw_cf);
+    				_handleInfo.serviceInfo.setParameter("previousSubmit", inNewPwdCfCallback);
+    				_ini.KeyPad.click(_handleInfo);
+    			});
+    			
+				initialize();
+				
+	    	});
+		});	
+
+	</script>
+</head>
+
+
+<body>	
+    <div class="m-initech-certificate-wrap" id="m-initech-certificate-wrap">
+        <header class="sticky">
+            <div class="inner-wrap">
+                <h1 id="INI_cert_modal_title"></h1>
+                <a href="javascript:void(null);return false;" class="prev" id="INI_PRIV_BTN"></a>
+            </div>
+        </header>
+        <section class="m-ini-cert-cont">
+            <div class="inner-wrap">
+ 				<!-- 인증서 목록 -->
+                <div class="m-ini-cert-list cert-select" id="INI_cert_single"></div>
+                <!-- // 인증서 목록 -->
+                
+                <!-- 인증서 암호입력 -->
+                <form id="keypadFrm" name="keypadFrm">
+	                <div class="m-ini-cert-password">
+	                    <h2 class="sect-title" id="INI_cert_password_title"></h2>
+	                    <div class="input-wrap">
+							<input type="password" title="password" class="msg_placeholder"id="INI_newCertPw" name="INI_newCertPw" autocomplete="off"/>
+						</div>
+	                    <h2 class="sect-title" id="INI_cert_password_confirm"></h2>
+	                    <div class="input-wrap">
+	                    	<input type="password" title="password" class="msg_placeholder" id="INI_newCertPw_cf" name="INI_newCertPw_cf" autocomplete="off"/>
+	                	</div>
+	                </div>
+                </form>
+                <!-- // 인증서 암호입력 -->
+                <!-- 버튼 영역 -->
+                <div class="m-ini-cert-btns">
+                    <span><a href="javascript:void(null);return false;" id="INI_certClose"></a></span>
+                    <span>&nbsp;</span>
+                    <span><a href="javascript:void(null);return false;" class="emp" id="INI_certSubmit"></a></span>
+                </div>
+                <!-- // 버튼 영역 -->
+            </div>
+        </section> <!-- // .cert-contents -->
+    </div> <!-- // .m-initech-certificate-wrap -->
+	
+</body>
+</body>
+<!--  
+ uniwebkey 용 DIV
+-->
+<div id="w2ui-popup-uniwebkey"></div>
+</html>

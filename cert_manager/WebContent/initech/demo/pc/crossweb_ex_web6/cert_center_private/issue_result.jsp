@@ -1,0 +1,289 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!-- 공통 관련 -->
+<%@ page import="java.nio.ByteBuffer"%>
+<%@ page import="java.nio.charset.Charset"%>
+<%@ page import="java.nio.CharBuffer"%>
+<%@ page import="java.util.Properties"%>
+<%@ page import="java.util.HashMap"%>
+
+<!-- 이니텍 관련 -->
+<%@ page import="com.initech.oppra.IniOPPRA"%>
+<%@ page import="com.initech.oppra.util.OppraSendDataParser"%>
+<%@ page import="com.initech.oppra.util.OppraMessageDataParser"%>
+<%@ include file="../top_path.jsp"%>
+<%!
+// v5이상만. 01=KFTC, 02=OTHER
+private String serviceProviderCode = "01";
+
+private String refNum;
+private String appCode;
+
+private String requestMsg;
+private String responseMsg;
+
+private OppraMessageDataParser sendRA(int requestCode, HashMap raMsg, boolean isGatwayRa){
+	
+	IniOPPRA oppra = null;
+	try {
+		// 01. RA 접속
+		oppra = new IniOPPRA(IpAdd, raPort);
+		oppra.setCharEncoding(RA_CHARTSET);
+		
+		// 02. 요청 메시지 생성
+		OppraSendDataParser oppraSendDataParser = new OppraSendDataParser( requestCode , raMsg, isGatwayRa);
+		this.requestMsg = oppraSendDataParser.getSendLastData();
+		System.out.println(requestMsg);
+		
+		// 03. RA서버 요청
+		oppra.initialize(RA_CHARTSET);
+		this.responseMsg = oppra.requestRAW(requestMsg);
+		System.out.println(responseMsg);
+		
+		return new OppraMessageDataParser( requestCode, oppra.getResDataPart() );
+		
+	}catch(Exception e){
+		e.printStackTrace();
+	}finally{
+		if(oppra!=null) try{ oppra.close(); }catch(Exception e){}
+	}
+	
+	return null;
+}
+
+private HashMap constructMsg(HttpServletRequest request){
+	
+	String USERCODE  = request.getParameter("usercode");
+	String REGNO  = request.getParameter("regno");
+	String CERTPOLICY  = request.getParameter("certpolicy"); //개인/범용
+	String USERID  = request.getParameter("userid");
+	String ORGNAME  = request.getParameter("orgname"); //법인명
+	String DETAILNAME  = null;
+	try{
+		DETAILNAME = request.getParameter("detailname");
+		DETAILNAME = new String(DETAILNAME.getBytes("8859_1"), "EUC-KR");
+		
+		USERID = request.getParameter("userid");
+		USERID = new String(USERID.getBytes("8859_1"), "EUC-KR");
+	}catch(Exception e){}
+	
+	String USERMAIL  = request.getParameter("usermail");
+	String CACODE = request.getParameter("cacode");
+	
+	// CA 코드 값으로 RA Port를 정의 한다.
+	initializeRaPort(CACODE);
+	// 정책, 용도 구분
+	initializePolicy(CERTPOLICY);
+	
+	HashMap raMsg = new HashMap();
+	raMsg.put("MANAGERID", raUser); // 운영자아아디. OPTIONAL 속성
+	raMsg.put("USERCODE", userCode); //가입자구분코드 "1" 개인   "2" 기업
+	raMsg.put("OU_NAME", orgName); // 개인은 법인명이 OPTIONAL
+	raMsg.put("CN_NAME", DETAILNAME); // 개인명, 법인/단체 세부명. "()"가 뒤에 포함되어야함. ex:) "홍길동()" 기업일 경우 "이니텍(INI)" ()안에 법인명이 들어감
+	raMsg.put("IDNO", REGNO); //주민(사업자)등록번호
+	raMsg.put("USERID", "IniDemo-"+USERID); //사이트아이디
+	raMsg.put("SERVICEPROVIDER", serviceProviderCode); //01:금결원OPP(또는 범용게이트웨이), 02:타기관직접연동
+	raMsg.put("CACODE", CACODE);
+	raMsg.put("CERTCODE", CERTPOLICY); //01:개인범용  02:기업범용  04:개인(은행/보험)  05:기업범용
+	raMsg.put("EMAIL", USERMAIL); //이메일
+	raMsg.put("FAX", "02-6445-7040"); //팩스
+	raMsg.put("POSTCODE", "152-050"); //우편번호
+	raMsg.put("POSTADDR", "서울특별시 구로구 에이스하이엔드타워2차 11층"); //주소
+	raMsg.put("PHONE", "02-6445-7200"); //전화
+	
+	if( CACODE.equals( "05" ) ){
+		raMsg.put("STATISTICSCODE", "000386"); //for Advance version
+	} else {
+		raMsg.put("STATISTICSCODE", "InitechDemo"); //for Advance version
+	}
+	
+	if( CACODE.equals( "05" ) ){
+		raMsg.put("POSTCODE1", "152-050"); //우편번호
+		raMsg.put("POSTADDR1", "ace hihigh-end tower 2 cha 61, Digital-ro 26 gil, Guro-gu Seoul, 152-724, Korea"); //주소
+		raMsg.put("PHONE1", "02-6445-7200"); //전화
+		raMsg.put("RESERVATION5", "0"); // 예약5
+	}
+	
+	return raMsg;
+}
+%>
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>공인인증서 신규발급/재발급</title>
+<link rel="stylesheet" type="text/css" href="../../../common/style/bootstrap.css">
+<link rel="stylesheet" type="text/css" href="../../../common/style/initech_demo_ui.css">
+<!--[if lt IE 9]>
+	<script src="../../../common/script/html5.js"></script>
+<![endif]-->
+<script type="text/javascript">
+//발급
+function CertProcessIssue(caName, szRef, szCode, isHtml5) {
+	//IssueCertificate(caName, szRef, szCode, "IssueCertificateCallback", isHtml5);
+	INIWEBEX.issueCertificate({
+		caName : caName,
+		szRef : szRef,
+		szCode : szCode,
+		isHtml5 : isHtml5,
+		processCallback : "IssueCertificateCallback"
+	});
+}
+
+function IssueCertificateCallback(result){
+	if(result){
+		document.readForm.submit();
+	}
+}
+</script>
+</head>
+<body>
+
+<!-- skip navigation start -->
+<div class="skip-navi">
+	<a href="#content">본문 바로가기</a>
+</div>
+<!-- skip navigation end -->
+
+<!-- wrapper start -->
+<div class="ini-demo-wrapper">
+	<!-- header start -->
+	<header>
+		<h1 class="sr-only">이니텍</h1>
+	</header>
+	<!-- header end -->
+	<!-- main start -->
+	<main class="ini-demo-container">
+		<!-- local navigation start -->
+		<jsp:include page="../menu.jsp" />
+		<!-- local navigation end -->
+		<!-- contents wrapper start -->
+		<section class="ini-demo-contents-wrapper" id="content">
+			<form name="readForm" id="readForm" method="POST" action="./issue_complete.jsp" onSubmit="return false;">
+			<input type="hidden" id="menuNum" name="menuNum" value="<%= request.getParameter("menuNum") %>"/>
+			<!-- contents start -->
+			<div class="ini-demo-contents">
+				<p class="ini-demo-logo"><img src="../../../common/images/img_customer_logo.png" alt="고객사 로고"></p>
+				<h2 class="ini-demo-title">공인인증서 신규발급/재발급</h2>
+				<div>
+			<%
+				boolean issueResult = true;
+				int requestCode = 20; //20 신규 발급 전문 //재발급 25 //갱신 28
+		
+				OppraMessageDataParser oppMsg = null;
+				try{
+					// 01. Gateway RA Server / RA Server
+					boolean isGatewayRA = ("GATEWAY_RA".equals(request.getParameter("ra_system")) ? true : false);
+					
+					requestCode = Integer.parseInt(request.getParameter("reqcode"));
+					// 02. 전문 생성
+					HashMap raMsg = constructMsg(request);
+					// 03. 요청
+					oppMsg = sendRA(requestCode, raMsg, isGatewayRA);
+					
+					System.out.println("--CAName : " + caName);
+					System.out.println("--CAIP : " + cmpCaIp);
+					System.out.println("--CAPort : " + cmpCaPort);
+					System.out.println("--IssueRefID : " + oppMsg.getCodeData("REFNUM"));
+					System.out.println("--IssuePassword : " + oppMsg.getCodeData("APPCODE"));
+					
+					session.setAttribute("CAName", caName);
+					session.setAttribute("CAIP", cmpCaIp);
+					session.setAttribute("CAPort", cmpCaPort);
+					session.setAttribute("IssueRefID", oppMsg.getCodeData("REFNUM"));
+					session.setAttribute("IssuePassword", oppMsg.getCodeData("APPCODE"));
+					
+				}catch(Exception e){
+					issueResult = false;
+					e.printStackTrace();
+				}
+			%>
+						<table class="table">
+							<caption>공인인증서 발급을 위한 결과 항목, 내용 나타낸 표</caption>
+							<colgroup>
+								<col style="width:30%">
+								<col style="">
+							</colgroup>
+							<thead>
+								<tr>
+									<th scope="col">결과 항목</th>
+									<th scope="col">내용</th>
+								</tr>
+							</thead>
+							<tbody>
+								<%
+					            String responseCode = oppMsg.getCodeData("RESCODE");
+					            if("000".equals(responseCode)){
+					            	refNum = oppMsg.getCodeData("REFNUM");
+					            	appCode = oppMsg.getCodeData("APPCODE");
+					            %>
+								<tr>
+									<td>참조 번호</td>
+									<td class="text-left"><%= refNum %></td>
+								</tr>
+								<tr>
+									<td>인가 코드</td>
+									<td class="text-left"><%= appCode %></td>
+								</tr>
+								<tr>
+									<td>처리 코드</td>
+									<td class="text-left"><%= responseCode %></td>
+								</tr>
+								<tr>
+									<td>처리 메세지</td>
+									<td class="text-left"><%= oppMsg.getCodeData("RESMSG") %></td>
+								</tr>
+								<%
+					            }else{
+					            	issueResult = false;
+					            %>
+					            <tr>
+					            	<td><b>에러코드</b></td>
+					            	<td class="text-left"><%= responseCode %></td>
+					            </tr>
+					            <tr>
+					            	<td><b>에러메시지</b></td>
+					            	<td class="text-left"><%= oppMsg.getCodeData("RESMSG") %></td>
+					            </tr>
+					            <tr>
+					            	<td><b>상세 에러코드</b></td>
+					            	<td class="text-left"><%= oppMsg.getCodeData("ADDRESCODE") %></td>
+					            </tr>
+					            <tr>
+					            	<td><b>상세 에러메시지</b></td>
+					            	<td class="text-left"><%= oppMsg.getCodeData("ADDRESMSG") %></td>
+					            </tr>
+					            <%
+					            }
+					            %>
+							</tbody>
+						</table>
+				</div>
+				<%if(issueResult){%>
+				<div class="ini-demo-btns">
+					<button type="button" class="btn btn-info btn-lg" onClick="CertProcessIssue('<%=caName%>', '<%=oppMsg.getCodeData("REFNUM")%>','<%=oppMsg.getCodeData("APPCODE")%>', true)" >Html5 공인인증서 신규발급</button>
+					<button type="button" class="btn btn-primary btn-lg hidden-xs" onClick="javascript:CertProcessIssue('<%=caName%>', '<%=oppMsg.getCodeData("REFNUM")%>','<%=oppMsg.getCodeData("APPCODE")%>');">INISAFE CROSS WEB EX 발급</button>
+				</div>
+				<%} %>
+			</div>
+			</form>
+			<!-- contents end -->
+		</section>
+		<!-- contents wrapper end -->
+	</main>
+	<!-- main end -->
+	<!-- footer end -->
+	<footer class="ini-demo-footer">
+		<div class="inner-wrap"><p>Copyright 2016. INITECH. ALL RIGHTS RESERVED</p></div>
+	</footer>
+	<!-- footer end -->
+</div>
+<!-- wrapper end -->
+<!-- script -->
+<script src="../../../../demo/common/script/bootstrap.min.js"></script>
+<script src="../../../../demo/common/script/css_browser_selector.min.js"></script> <!-- 브라우저 식별 -->
+<script src="../../../../demo/common/script/initech_demo_ui.js"></script> <!-- ui 관련 커스텀 -->
+</body>
+</html>

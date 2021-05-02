@@ -1,0 +1,3 @@
+<?
+	echo IWLP_GetTime();
+?>

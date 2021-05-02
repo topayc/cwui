@@ -1,0 +1,192 @@
+<!DOCTYPE html> 
+<html> 
+<head>
+<meta charset="utf-8">
+<title></title>
+    <script type="text/javascript">
+		require([GINI_MANIFEST["cwui.js"]], function(_ini) {
+			
+			requirejs("jquery")(document).ready(function() {
+				
+				var _handleInfo = requirejs("jquery")("#INI_change_area").data("GINI_handleInfo");
+				var _orgKeyPadFrm =  _handleInfo.serviceInfo.getParameter("KeypadFrmName");
+				_handleInfo.optionInfo.setParameter("CERT_VIEW_TYPE", _ini.constants.Certs.CERTIFICATE_NORMAL_ATTR);
+				_handleInfo.serviceInfo.setCallback(_ini.WebForm.drawCertAttrDetail);
+				
+				// 삭제할 인증서의 정보를 보여준다.
+				_ini.Certs.getCertAttributeInfo(_handleInfo);
+				// 매체가 보안토큰 일 경우 pin 번호를 입력해야 한다. 
+				if( _handleInfo.serviceInfo.getDeviceId() === _ini.constants.Certs.STORAGE_SECURITY_TOKEN ){
+					requirejs("jquery")("#keypadFrmRemoveArea").show();
+					requirejs("jquery")(".certificate_delete_area").css("height", "290px");
+					
+					_handleInfo.serviceInfo.setParameter("virtualCloseCallback", function (){_ini.KeyPad.initializeKeyPad(_handleInfo);});
+					_handleInfo.serviceInfo.setParameter("KeypadFrmName" ,"keypadFrmRemove");
+					_ini.KeyPad.initializeKeyPad(_handleInfo);
+				}else{
+					requirejs("jquery")(".certificate_delete_area").css("height", "248px");
+					requirejs("jquery")("#keypadFrmRemoveArea").hide();
+				}
+				
+				function callbackRevoke(params){
+					_handleInfo.stateInfo.setResult("CONFIRM");
+					_ini.WebForm.closeModal();
+				};
+
+				function callbackRemove(params){
+					if(_ini.constants.WebForm.ACTION_CERT_REVOKE == _handleInfo.serviceInfo.getBehavior()){
+						// 인증서 폐기 후 삭제는 현 창을 닫는다.
+						_handleInfo.stateInfo.setResult("CONFIRM");
+						_ini.WebForm.closeModal();
+					}else{
+						INI_HANDLE.infoMessage(_ini.msgFactory.getMessageFactory().Info.INFO_1005 );	//인증서 삭제를 완료 하였습니다.
+						_handleInfo.serviceInfo.setParameter("KeypadFrmName", _orgKeyPadFrm);
+						_handleInfo.serviceInfo.setParameter("CERT_ID", undefined);
+						_handleInfo.serviceInfo.setBehavior(_handleInfo.serviceInfo.getAction());
+						_ini.StorageManage.setFocusStorage(_handleInfo.serviceInfo.getDeviceId());
+		    			_ini.StorageManage.storageClick(_handleInfo);
+					}
+				};
+				
+				function finalRemoveSubmit(_pin){
+	    			if( _handleInfo.serviceInfo.getDeviceId() === _ini.constants.Certs.STORAGE_SECURITY_TOKEN ){
+		    			_handleInfo.serviceInfo.setParameter("PIN", _pin);
+	    			} 
+	   				if(_ini.constants.WebForm.ACTION_CERT_REVOKE == _handleInfo.serviceInfo.getBehavior()){
+						// 폐기 삭제
+						_handleInfo.serviceInfo.setCallback(callbackRevoke);
+						if(_handleInfo.serviceInfo.getDeviceId() === _ini.constants.Certs.STORAGE_BROWSER){
+							_ini.CertManager.removeCertificate(_handleInfo);
+						} else {
+							_ini.CertManager.revokeCertificate(_handleInfo);
+						}
+					} else {
+						// 일반 삭제
+						_handleInfo.serviceInfo.setCallback(callbackRemove);
+						_ini.CertManager.removeCertificate(_handleInfo);
+					}
+	    		}
+				
+				function previousRemoveSubmit(){
+					if( _handleInfo.serviceInfo.getDeviceId() === _ini.constants.Certs.STORAGE_SECURITY_TOKEN ){
+						function newPinCallback(newPin){
+							finalRemoveSubmit(newPin);
+	    				}
+	    				var pin = requirejs("jquery")('input[name="INI_Remove_CertPinPw"]').val();
+						_handleInfo.serviceInfo.setParameter("PIN", pin);
+						_handleInfo.serviceInfo.setParameter("pwdId", "INI_Remove_CertPinPw");
+						
+						_ini.KeyPad.getKeyPadValue(_handleInfo, newPinCallback, "SECURE");
+					} else {
+						finalRemoveSubmit();
+					}
+				}
+				
+				// ------------------- 메세지 처리 Start -------------------------------------------------------------------------------------------------------- //
+				// --------------------------------------------------------------------------------------------------------------------------------------------- // 
+				
+				// 인증서 삭제 박스 텍스트				
+				requirejs("jquery")("#INI_cert_second_modal_title").text(_ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_REMOVE().W_T_C_R_001);
+				requirejs("jquery")("#INI_cert_modal_message").html('<b>' + _ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_REMOVE().W_T_C_R_002 + '</b>');
+				requirejs("jquery")("#INI_cert_second_modal_sub_title").text(_ini.msgFactory.getMessageFactory().WebForm().TEXT().COMMON().W_T_005);
+				requirejs("jquery")("#INI_CertPin_check_text").text(_ini.msgFactory.getMessageFactory().WebForm().TEXT().COMMON().W_T_009);
+				requirejs("jquery")("#INI_CertPin_no_text").text(_ini.msgFactory.getMessageFactory().WebForm().TEXT().COMMON().W_T_022);
+				document.getElementById("INI_Remove_CertPinPw").setAttribute("placeholder", _ini.msgFactory.getMessageFactory().WebForm().TEXT().COMMON().W_T_015);
+				
+				// 예 , 아니오 버튼
+				requirejs("jquery")("#INI_certRemoveY").text(_ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_004);
+				requirejs("jquery")("#INI_secondClose").text(_ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_005);				
+				// ------------------- 메세지 처리   End -------------------------------------------------------------------------------------------------------- //
+				// --------------------------------------------------------------------------------------------------------------------------------------------- //
+				
+				requirejs("jquery")('#INI_keypad_remove_btn').click(function(){
+    				if(_ini.KeyPad.getKeypadName() !== _ini.constants.KeyStrokeSecurity.KEYPAD_NAME.UNIWEB_KEY){
+	    				_ini.KeyPad.initializeKeyPad(_handleInfo, true);
+					}
+    				requirejs("jquery")('#INI_Remove_CertPinPw').focus().click();
+    			});
+    			requirejs("jquery")('#INI_Remove_CertPinPw').click(function(){
+    				requirejs("jquery")('#INI_Remove_CertPinPw').val("");
+    				_handleInfo.serviceInfo.setParameter("pwdId", "INI_Remove_CertPinPw");
+    				_handleInfo.serviceInfo.setParameter("pwdElement", document.keypadFrmRemove.INI_Remove_CertPinPw);
+    				_handleInfo.serviceInfo.setParameter("previousSubmit", finalRemoveSubmit);
+    				_ini.KeyPad.click(_handleInfo);
+    			});
+    			
+				// 예를 클릭했을 경우 해당 인증서를 스토리지에서 삭제한다.
+				requirejs("jquery")("#INI_certRemoveY").click(function(){
+					previousRemoveSubmit();
+				});
+				
+				// 목록으로 돌아가기
+				requirejs("jquery")('#INI_secondClose').click(function(){
+					//if(_handleInfo.serviceInfo.getAction() === _ini.constants.WebForm.ACTION_CERT_CMP){
+					if(_ini.constants.WebForm.ACTION_CERT_REVOKE == _handleInfo.serviceInfo.getBehavior()){
+						_ini.WebForm.closeModal();
+					} else {
+						// 뒤로가기 (목록)
+						_handleInfo.serviceInfo.setParameter("KeypadFrmName", _orgKeyPadFrm);
+						_handleInfo.serviceInfo.setParameter("CERT_ID", undefined);
+						_handleInfo.serviceInfo.setBehavior(_handleInfo.serviceInfo.getAction());
+						_ini.StorageManage.setFocusStorage(_handleInfo.serviceInfo.getDeviceId());
+		    			_ini.StorageManage.storageClick(_handleInfo);
+					}
+				});
+				
+				requirejs("jquery")("#INI_certRemoveY").focus();
+				requirejs("jquery")("#INI_certRemoveY").one("keypress",remove);				
+				function remove(e){
+					var eWhich = e.which;
+ 				    if(e.which == 13) {
+ 			        	requirejs("jquery")('#INI_certRemoveY').focus().click();
+ 			        	return false;
+ 				    }
+				};				
+			});
+		});
+	</script>
+</head>
+<body>
+
+	<!--인증서 보기 -->
+	<div class="certificate_view_area">
+	    <h2 class="section_title" id="INI_cert_second_modal_title"></h2>
+	   
+	   <dl class="info_data" id="INI_cert_detail_list">
+	        <dt class="title" id="INI_cert_second_modal_sub_title"></dt>
+	        <dd>
+	            <div class="summary" id="INI_cert_single">
+	            </div>
+	        </dd>
+	    </dl>
+	</div>
+	
+	<!-- //인증서 보기 -->
+	<p class="align_center pdt20" id="INI_cert_modal_message"></p>
+	<!-- 인증서 하단(버튼 등) -->
+	<fieldset>
+    <legend><span id="INI_CertPin_no_text"></span></legend>
+    <!-- 인증서 암호 입력 -->
+    <dl class="certificate_password" id="keypadFrmRemoveArea">
+        <dt class="section_title" style="padding-top:10px;"><span id="INI_CertPin_check_text"></span></dt>
+        <dd>
+		<form class="certificate_password" id="keypadFrmRemove" name="keypadFrmRemove" method="post">
+            <input type="password" title="password" id="INI_Remove_CertPinPw" name="INI_Remove_CertPinPw"  />
+            <span class="keyboard" id="INI_keypad_remove_btn"></span>
+		</form>
+        </dd>
+    </dl>
+	</fieldset>
+     <!-- //인증서 암호 입력 -->
+	<!-- // 인증서 하단-->
+	<!-- 버튼 영역 -->
+	<div class="confirm_btn_area">
+		<button type="button" class="emp" id="INI_certRemoveY"></button>
+		<button type="button" class="cancel" id="INI_secondClose"></button>
+	</div>
+	<!-- //버튼 영역 -->
+	<!-- // 인증서 하단-->
+</body>
+<div id="w2ui-popup-uniwebkey"> 
+</div>
+</html>

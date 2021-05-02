@@ -1,0 +1,78 @@
+<!DOCTYPE html> 
+<html> 
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="Cache-Control" content="no-cache"/> 
+	<meta http-equiv="Expires" content="0"/>
+	<meta http-equiv="Pragma" content="no-cache"/> 
+	<title></title>
+
+    <script type="text/javascript">
+    	require([GINI_MANIFEST["cwui.js"]], function(_ini) {
+			
+			requirejs("jquery")(document).ready(function() {
+				
+				var _handleInfo = requirejs("jquery")("#INI_change_area").data("GINI_handleInfo");
+				
+				// ------------------- 메세지 처리 Start -------------------------------------------------------------------------------------------------------- //
+    			// --------------------------------------------------------------------------------------------------------------------------------------------- //
+				// 직접찾기 텍스트
+				requirejs("jquery")("#INI_cert_search_manual_third_title").text(_ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_SEARCH().W_T_C_S_002);
+				requirejs("jquery")("#INI_cert_search_manual_drop_help").html(_ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_SEARCH().W_T_C_S_005);
+				requirejs("jquery")("#INI_cert_search_manual_dropzone_text").html(_ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_SEARCH().W_T_C_S_007);
+				// 탐색기 열기
+				requirejs("jquery")("#INI_certFileFind_text").text(_ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_011);
+				// 이전
+				requirejs("jquery")("#INI_secondClose").text(_ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_003);
+				// ------------------- 메세지 처리   End -------------------------------------------------------------------------------------------------------- //
+    			// --------------------------------------------------------------------------------------------------------------------------------------------- //
+    			
+				_ini.CertManager.initializeSave('INI_dropZone', 'INI_findfiles', _ini.CertManager.searchCert);
+				
+				
+				requirejs("jquery")('#INI_certFileFind').click(function(){
+					requirejs("jquery")('#INI_findfiles').click();
+				});
+				
+				requirejs("jquery")("#INI_secondClose").click(function(){
+					//브라우저의 경우 간편/직접 화면으로 그 이외의 경우 리스트 화면으로 이동.
+					if(_handleInfo.serviceInfo.getDeviceId() === _ini.constants.Certs.STORAGE_BROWSER){
+						_ini.SubForm.openSubCertSearchForm(_handleInfo);
+					} else {
+						_handleInfo.serviceInfo.setParameter("CERT_ID", undefined);
+		    			_ini.StorageManage.setFocusStorage(_handleInfo.serviceInfo.getDeviceId());
+		    			_ini.StorageManage.storageClick(_handleInfo);
+					}
+				});
+				requirejs("jquery")(".ico").on('click', function () {
+   				 
+  			    	requirejs("jquery")(this).parent().children("span").trigger('click');
+  			 	});
+			});
+		});
+	</script>
+</head>
+<body>
+
+	<!-- 인증서 간편 찾기 -->
+	<h2 class="section_title" id="INI_cert_search_manual_third_title"></h2>
+	<div class="find_certificate direct_method">
+	    <p id="INI_cert_search_manual_drop_help"></p>
+	    <div class="drag_n_drop" id="INI_dropZone">
+	        <span class="icon drag"></span>
+	        <p><b class="fs12"><em id="INI_cert_search_manual_dropzone_text"></em></b></p>
+	    </div>
+	    <p class="align_right pdr0">
+	    	<button class="btn_exp" id="INI_certFileFind"><i class="ico srh"></i>&nbsp;<span id="INI_certFileFind_text"></span></button>
+		</p>
+		<input type="file" id="INI_findfiles" style="display: none;" name="INI_findfiles" multiple/>
+	</div>
+	<!-- // 인증서 찾기 -->
+	<!-- 버튼 영역 -->
+	<div class="confirm_btn_area">
+	    <button type="button" class="cancel" id="INI_secondClose"></button>
+	</div>
+	<!-- //버튼 영역 -->
+
+</body>
+</html>

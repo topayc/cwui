@@ -1,0 +1,107 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, target-densitydpi=device-dpi" />
+
+	<script type="text/javascript">
+		require([GINI_MANIFEST["cwui.js"]], function(_ini) {
+			
+			var _handleInfo = requirejs("jquery")("#INI_subModalDialog").data("GINI_handleInfo");
+			
+			// 초기화
+			function initialize() {
+				_handleInfo.serviceInfo.setEventDeviceId(_ini.constants.Certs.STORAGE_BROWSER);
+				_handleInfo.serviceInfo.setDeviceSub(undefined);
+				_handleInfo.serviceInfo.setCallback(_ini.MobileForm.MobileDrawForm.drawMobileCertDetailInfo);
+			};
+	
+			requirejs("jquery")(document).ready(function() {
+				//  간편찾기
+				requirejs("jquery")('#INI_CERT_SEARCH_EASY').click(function(){
+					initialize();
+					_ini.MobileForm.MobileSubForm(_ini.constants.WebForm.FormId.SubForm.CertSearchEasyForm
+														, _handleInfo
+														, "INI_ModalDialog_03");
+				});
+				// 직접찾기
+				requirejs("jquery")('#INI_CERT_SEARCH_MANUAL').click(function(){
+					initialize();
+					_ini.MobileForm.MobileSubForm(_ini.constants.WebForm.FormId.SubForm.CertSearchManualForm
+														, _handleInfo
+														, "INI_ModalDialog_03");
+				});
+				
+				// 초기화
+				initialize();
+				
+				/* 메세지 처리 공통 처리 */
+				requirejs("jquery")(".prev").html('<img src="' + GINI_HTML5_BASE_PATH + '/res/img/mobile/common/dum_btn_prev.png" alt="'+_ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_003+'" />');
+				requirejs("jquery")("#msg_title").text(_ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_SEARCH().W_T_C_S_011 );		// 인증서 찾기
+				requirejs("jquery")("#msg_easy").text(_ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_SEARCH().M_W_T_C_S_001 );		// 기기간 가져오기
+				requirejs("jquery")("#msg_direct").text(_ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_SEARCH().W_T_C_S_002 );		// 직접 가져오기
+				requirejs("jquery")("#msg_noti_title").text(_ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_SEARCH().M_W_T_C_S_001_2 );//직접 가져오기, 기기간 가져오기는
+				requirejs("jquery")("#msg_noti_text").text(_ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_SEARCH().M_W_T_C_S_014 );	// 제공해드린 프로그램을 이용하여 인증서를 쉽게 찾을 수 있습니다. P12 포맷의 인증서 파일이나 인증서가 들어 있는 폴더에서 직접 찾을 수 있습니다.
+				requirejs("jquery")("#INI_search_cancel").text(_ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_002 );				// 취소
+				
+				requirejs("jquery")("#INI_cert_search_easy_icon").html('<img src="' + GINI_HTML5_BASE_PATH + '/res/img/mobile/common/dum_srh_icon.png"/>');
+				requirejs("jquery")("#INI_cert_search_manual_icon").html('<img src="' + GINI_HTML5_BASE_PATH + '/res/img/mobile/common/dum_srh_icon.png"/>');
+				
+				/* 메세지 처리 공통 처리 */
+				requirejs("jquery")(".ico").click(function(){
+  			    	requirejs("jquery")(this).parent().children("span").trigger('click');
+  			 	});
+				requirejs("jquery")('.prev').click(function (e) {
+					requirejs("jquery")("#INI_subModalDialog").dialog('close');
+				});
+				requirejs("jquery")('#INI_search_cancel').click(function (e) {
+					requirejs("jquery")("#INI_subModalDialog").dialog('close');
+				});
+				
+			});
+		});
+	</script>
+</head>
+<body>
+
+	<div class="m-initech-certificate-wrap" id="m-initech-certificate-wrap">
+        <header class="sticky">
+            <div class="inner-wrap">
+                <h1 id="msg_title"></h1>
+                <a href="javascript:void(null);return false;" class="prev"></a>
+            </div>
+        </header>
+        <section class="m-ini-cert-cont">
+            <div class="inner-wrap">
+                <!-- 인증서 찾기 -->
+                <div class="m-ini-search">
+                    <div class="table">
+                        <a href="javascript:void(null);return false;" id="INI_CERT_SEARCH_EASY">
+                            <b id="msg_easy"></b>
+                            <span class="icon simple" id="INI_cert_search_easy_icon"></span>
+                        </a>
+                        <!--<a href="javascript:void(null);return false;" id="INI_CERT_SEARCH_MANUAL">
+                            <b id="msg_direct"></b>
+                            <span class="icon direct" id="INI_cert_search_manual_icon"></span>
+                        </a>-->
+                    </div>
+                </div>
+                <dl class="panel notice">
+                    <dt><i class="ico notice" ></i> <b id="msg_noti_title"></b></dt>
+                    <dd id="msg_noti_text"></dd>
+                </dl>
+                <!-- // 인증서 찾기 -->
+                <!-- 버튼 영역 -->
+                <div class="m-ini-cert-btns">
+                    <span><a href="javascript:void(null);return false;" class="w50p" id="INI_search_cancel"></a></span>
+                </div>
+                <!-- // 버튼 영역 -->
+            </div>
+        </section> <!-- // .cert-contents -->
+    </div> <!-- // .m-initech-certificate-wrap -->
+	
+</body>
+</html>

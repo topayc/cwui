@@ -1,0 +1,368 @@
+    <link rel="stylesheet" type="text/css" media="all" href="/res/style/inner/inner_certificate.css" />
+    <script type="text/javascript">
+	
+    require([GINI_MANIFEST["cwui.js"]], function(_ini) {
+//  	    _ini.WebForm.InnerColorCss;
+    	
+    	// initech parameter handle object
+		var _handleInfo;
+		
+		// 초기화
+		function initialize(){
+			_handleInfo = requirejs("jquery")("#INI_inner_area").data("GINI_handleInfo");
+			
+			_handleInfo.serviceInfo.setEventDeviceId(_ini.constants.Certs.STORAGE_BROWSER);
+			
+			// signForm 그리기
+			var orgText = decodeURI(_handleInfo.requestInfo.getParameter("ORG_DATA"));
+			_ini.WebForm.drawSignForm(orgText);
+			
+			// 1. 초기 _handleInfo.serviceInfo.getDeviceId() 값 필터 고려
+			var selected = _ini.Certs.SelectedCertInfo;
+   			if(selected){
+
+				_handleInfo.serviceInfo.setEventDeviceId(selected.deviceId);
+				_handleInfo.serviceInfo.setDeviceSub(selected.deviceSub);
+				// 캐시된 내용에 따른 버튼 처리 
+				requirejs("jquery")("#INI_cert_search_btn").addClass('btn_disabled');
+				requirejs("jquery")("#INI_cert_remove_btn").addClass('btn_disabled');
+				
+				// 2. 매체(storage)
+	   			_ini.InnerWebForm.dialogdrawStorageList('INI_storage_list', _handleInfo.serviceInfo.getAction(), selected);
+				
+				// select 된 tab을 보여줌
+				requirejs("jquery")("#" + selected.deviceId ).addClass("select");	// tab select 
+				_ini.StorageManage.setFocusStorage(_handleInfo.serviceInfo.getDeviceId());
+				_ini.StorageManage.storageClickInner(_handleInfo); 	// 인증서 목록 
+				
+				requirejs("jquery")('#INI_inner_body').css('display', 'block');
+				
+			}else{
+				INI_HANDLE.warnMessage(_ini.msgFactory.getMessageFactory().Warn.WARN_1020);
+				return false;
+			}
+		}
+		// 전자서명
+		function submitSignature(pwd){
+			
+			if(_handleInfo.serviceInfo.getParameter("CERT_ID") == undefined){
+				INI_HANDLE.warnMessage(_ini.msgFactory.getMessageFactory().Warn.WARN_1015);
+			 	requirejs("jquery")('#INI_userPw').focus();
+			 	return;
+			}
+
+			_handleInfo.serviceInfo.setParameter("PIN", pwd);
+			_handleInfo.serviceInfo.setParameter("PWD", pwd);
+			_handleInfo.serviceInfo.setCallback(doSignatureCB);
+			_handleInfo.serviceInfo.setExceptionCallback(
+				function(){
+					requirejs("jquery")('input[name="INI_userPw"]').val("");
+					GINI_ProtectMgr.clean("NONCE");
+				});
+			
+			_ini.Signature.doSign(_handleInfo);
+		};
+		
+		function doSignatureCB(){
+			_handleInfo.stateInfo.setResult("CONFIRM");				
+			
+				
+				// 전자서명 이면서 전자서명 옵션에 PKCS7DATA_TO_PKCS1 존재하는 경우 : PKCS1서명 수행
+				var dataSignatureCallback = _handleInfo.optionInfo.getParameter("PKCS7DATA_TO_PKCS1");
+				if(dataSignatureCallback){
+					_handleInfo.optionInfo.setParameter("SIGN_KIND", "PKCS1");
+					
+					var pkcs7Info = _handleInfo.responseInfo.getParameter();
+					
+					var orgData = dataSignatureCallback(pkcs7Info);
+					
+					_handleInfo.requestInfo.setParameter("ORG_DATA", orgData);
+					
+					function addDataSignatureCallback(){
+						var pkcs1Info = _handleInfo.responseInfo.getParameter();
+						
+						var vidAttr = {};
+						vidAttr.SIGNATURE = pkcs7Info.SIGNATURE;			// PKCS#7
+						vidAttr.PKCS7DATA_FROM_PKCS1 = pkcs1Info.SIGNATURE;
+						vidAttr.VID_CERTIFICATE = pkcs7Info.VID_CERTIFICATE;
+						vidAttr.VID_RANDOM = pkcs7Info.VID_RANDOM;
+						
+						// 최종 _handleInfo 콜백 수행
+						_handleInfo.requestInfo.getCallback()(true, vidAttr);
+					};
+					
+					_handleInfo.serviceInfo.setCallback(addDataSignatureCallback);
+					
+					 // 여기서 실행하면 안됨 hnkim_q  수정하기 
+					_ini.middleChannel.Signature.selectedSignature(_handleInfo);
+					
+					
+				}else{
+					// 최종 인터페이스 콜백 수행
+					_handleInfo.requestInfo.getCallback()(true, _handleInfo.responseInfo.getParameter());	
+				}
+	   		}
+			
+		
+		// submit이전 Logic
+// 		function previousSubmit(pwd){
+// 			_ini.KeyPad.getKeyPadValue(_handleInfo, "keypadFrm", "INI_userPw", pwd, submitSignature);
+// 		};
+    	
+
+    	
+		requirejs("jquery")(document).ready(function() {
+			
+			// text
+			requirejs("jquery")("#INI_cert_passwd_label").text(_ini.msgFactory.getMessageFactory().WebForm().TEXT().COMMON().W_T_004);
+// 			requirejs("jquery")("#INI_cert_passwd_help_msg").val(_ini.msgFactory.getMessageFactory().WebForm().TEXT().COMMON().W_T_012);
+
+			// button
+			requirejs("jquery")("#INI_cert_detail_info_btn").val(_ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_006);
+			requirejs("jquery")("#INI_cert_search_btn").val(_ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_007);
+			requirejs("jquery")("#INI_cert_remove_btn").val(_ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_008);
+			
+			requirejs("jquery")("#INI_certSubmit").val(_ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_001);
+			requirejs("jquery")("#INI_certClose").val(_ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_002);
+			
+			/* 전자서명 확인 버튼 클릭 */
+			requirejs("jquery")('#INI_certSubmit').click(function(){
+				var pwd = requirejs("jquery")('input[name="INI_userPw"]').val();
+				
+				submitSignature(pwd);
+// 	    		previousSubmit(pwd);
+			});
+
+			// 취소버튼 클릭
+			requirejs("jquery")('#INI_certClose').click(function(){
+				requirejs("jquery")('input[name="INI_userPw"]').val("");
+			});
+			
+			/* 가상키패드 or E2E Click */
+//     		requirejs("jquery")('#INI_userPw').click(function(){
+//     			requirejs("jquery")('#INI_userPw').val("");
+// 				if(_handleInfo.serviceInfo.getDeviceId() == _ini.constants.Certs.STORAGE_BROWSER){ 
+// 						//|| (_ini.system.Browser.getBrowserName() !== _ini.constants.Browser.EXPLORER)){
+// 					// 가상키패드 처리
+// 					_selectedKeyPadId = GINI_KeyPadManager.newKeyPad(document.keypadFrm.INI_userPw);
+//     				_selectedKeyPadId.showKeyPad(previousSubmit);    					
+// 				}
+// 			});
+			
+// 			requirejs("jquery")('[type=password]').keypress(function(e) {
+// 				 if(e.which == 13) {
+// 			        	requirejs("jquery")('#INI_certSubmit').focus().click();
+// 			        	return false;
+// 				 }else{
+// 						var password = requirejs("jquery")(this),
+// 						s = String.fromCharCode(e.which);
+// 						if ( s.toUpperCase() === s && s.toLowerCase() !== s && !e.shiftKey ) {
+// 							document.getElementById('CapsWarnToolTip').style.visibility = 'visible';
+// 						} else {
+// 							document.getElementById('CapsWarnToolTip').style.visibility = 'hidden';
+// 						}
+// 				    }
+// 			});
+			
+			// 인증서 상세보기
+			requirejs("jquery")("#INI_cert_detail_info_btn").click(function(e) {
+
+				var thisObj = requirejs("jquery")(e.currentTarget);
+				if( requirejs("jquery")( thisObj ).hasClass( 'disabled' ) ) {
+		    		return false;
+		    	}
+				
+				if(_handleInfo.serviceInfo.getParameter("CERT_ID")){
+					_ini.InnerWebForm.openForm(_handleInfo, _ini.InnerWebForm.openSubCertDetailForm, undefined);
+				}else{
+					INI_HANDLE.warnMessage(_ini.msgFactory.getMessageFactory().Warn.WARN_1015);
+				 	return;
+				}
+			});
+    	
+		    //인증서  리스트에서 선택 Active
+		    requirejs("jquery")('#INI_certList').on('click', 'tr', function (e) {
+
+		    	var thisObj = requirejs("jquery")(e.currentTarget);
+		    	var customAttr = requirejs("jquery")('.certificate_list_area table tr td').attr("attr");
+		    	if(customAttr == "zerolist"){
+		    		_handleInfo.serviceInfo.setParameter("CERT_ID", null);
+		    		return;
+		    	}
+		    	
+		    	requirejs("jquery")('.certificate_list_area table tr').removeClass('active');
+		    	thisObj.addClass('active');
+		        var id = thisObj.closest("tr").attr("id");	// pk
+		        
+// 		        alert("id :" + id );
+		        
+				if(id == undefined){
+					_handleInfo.serviceInfo.setParameter("CERT_ID", null);
+					return;
+				} else {
+					_handleInfo.serviceInfo.setParameter("CERT_ID", id);
+				}
+		    });
+			
+			initialize();
+    	});
+	});
+    </script>
+    
+    <script type="text/javascript">
+// 		var head = document.getElementsByTagName('head')[0];
+// 		var script1 = document.createElement('script');
+// 		script1.src = GINI_HTML5_BASE_PATH + "/cw/html5/script/common/initech_web_inner_common.js";
+// 		head.appendChild(script1);
+    </script>
+</head>
+
+<input type="hidden" name="signOrgData"/>
+
+<body>
+	<div id="INI_inner_body" style="display:none">
+	    <div class="inner_initech_certificate_wrap" >
+	        <h1 class="inner_initech_certificate_title" id="INI_storage_select_title"></h1>
+	  	
+			<div class="certificate_tab certificate_tab_number5 media_select_area" id="INI_storage_list"></div>
+			
+			<!-- 
+	        <div class="certificate_tab certificate_tab_number5">
+	            <ul>
+	                <li class="one_depth">
+		                	<a href="#Hard_Disk_Area" class="select">
+	    	            		<img src="/res/img/inner/icon/hard_disk.png" alt="" />하드디스크
+							</a>
+					</li>
+	                <li class="one_depth">
+	                    <a href="#USB_disk" rel="usb_disk_drive">
+	                    	<img src="/res/img/inner/icon/usb_disk.png" alt="" />이동식디스크
+	                   	</a>
+	                    <div class="disk_drive" id="usb_disk_drive">
+	                        <ol>
+	                            <li>로컬디스크 (D:)</li>
+	                            <li>로컬디스크 (E:)</li>
+	                            <li>로컬디스크 (F:)</li>
+	                        </ol>
+	                    </div>
+	                </li>
+	                <li class="one_depth">
+	                    <a href="#Save_Token" rel="save_token_drive"><img src="/res/img/inner/icon/save_token.png" alt="" />저장토큰</a>
+	                    <div class="disk_drive" id="save_token_drive">
+	                        <ol>
+	                            <li>저장토큰 1</li>
+	                            <li>저장토큰 2</li>
+	                            <li>저장토큰 3</li>
+	                        </ol>
+	                    </div>
+	                </li>
+	                <li class="one_depth">
+	                    <a href="#Security_Token" rel="security_token_drive"><img src="/res/img/inner/icon/security_token.png" alt="" />보안토큰</a>
+	                    <div class="disk_drive" id="security_token_drive">
+	                        <ol class="two_depth">
+	                            <li>보안토큰 1</li>
+	                            <li>보안토큰 2</li>
+	                            <li>보안토큰 3</li>
+	                        </ol>
+	                    </div>
+	                </li>
+	                 -->
+	                 
+	                <!--<li class="one_depth">
+	                    <a href="#Smart_phone" rel="smart_phone_drive"><img src="/res/img/inner/icon/smart_phone.png" alt="" />휴대폰</a>
+	                    <div class="disk_drive" id="smart_phone_drive">
+	                        <ol>
+	                            <li>휴대폰 인증서 저장 서비스</li>
+	                        </ol>
+	                    </div>
+	                </li>-->
+	                <!-- 
+	                <li class="one_depth last">
+	                    <a href="#extend" rel="extend_select"><img src="/res/img/inner/icon/extend.png" alt="" />확장매체</a>
+	                    <div class="disk_drive extend_select" id="extend_select">
+	                        <div class="extend_object extend_object_drive" resource="security_token">
+	                            <span class="security_token">&nbsp;</span>보안토큰
+	                            <div class="object_drive" id="security_token">
+	                                <div class="icon"><img src="/res/img/inner/icon/arrow_top.png" alt="" /></div>
+	                                <ul>
+	                                    <li>IC카드 인증서</li>
+	                                    <li>IC카드 인증서(AAA)</li>
+	                                    <li>IC카드 인증서(BBB)</li>
+	                                </ul>
+	                            </div>
+	                        </div>
+	                        <div class="extend_object extend_object_normal"><span class="smart_certify">&nbsp;</span>스마트인증</div>
+	                        <div class="extend_object extend_object_disable"><span class="qr">&nbsp;</span>바로사인</div>
+	                    </div>
+	                </li>
+	            </ul>
+	        </div>
+	         -->
+	        <!-- 저장매체 END -->
+	        
+	        <!-- 인증서 리스트  -->
+	        <div class="certificate_list_area" >
+	        
+	        	<div id="INI_certList">
+		           
+		            <!--Hard Disk-->
+	<!-- 	            <div class="certificate_data" id="Hard_Disk_Area"> -->
+	<!-- 	                <table> -->
+	<!-- 	                    <thead> -->
+	<!-- 	                        <tr> -->
+	<!-- 	                            <th>구분</th> -->
+	<!-- 	                            <th>사용자</th> -->
+	<!-- 	                            <th>만료일</th> -->
+	<!-- 	                            <th class="last">발급자</th> -->
+	<!-- 	                        </tr> -->
+	<!-- 	                    </thead> -->
+	<!-- 	                    <tbody> -->
+	<!-- 	                        <tr> -->
+	<!-- 	                            <td><img src="/res/img/inner/icon/inner_certificate.png" alt="" />은행개인</td> -->
+	<!-- 	                            <td>사용자73498642138746128764391287643214412</td> -->
+	<!-- 	                            <td>2016-04-29</td> -->
+	<!-- 	                            <td class="last">금융결제원</td> -->
+	<!-- 	                        </tr> -->
+	<!-- 	                        <tr> -->
+	<!-- 	                            <td><img src="/res/img/inner/icon/inner_certificate.png" alt="" />은행개인</td> -->
+	<!-- 	                            <td>사용자73498642138746128764391287643214412</td> -->
+	<!-- 	                            <td>2016-04-29</td> -->
+	<!-- 	                            <td class="last">금융결제원</td> -->
+	<!-- 	                        </tr> -->
+	<!-- 	                    </tbody> -->
+	<!-- 	                </table> -->
+	<!-- 	            </div> -->
+		            <!--//Hard Disk-->
+				</div>
+	            
+	            <!-- 인증서 리스트  END -->
+	            
+	            <!--Enter Password-->
+	            <div class="certificate_enter_password">
+	            
+	                <div class="password_title" id="INI_cert_passwd_label"></div>
+	                <ul class="password_enter">
+	                    <li class="certificate_password"><input title="password" type="password" name="INI_userPw" id="INI_userPw" /></li>
+	<!--                     <li class="mouse_btn"><input type="button" title="마우스입력" /></li> -->
+	                </ul>
+	                 <div class="info_text"></div>
+	<!-- 					<img src="/res/img/inner/icon/info.gif" id="INI_cert_passwd_help_msg" alt="" /></div> -->
+	                <ul class="certificate_btn">
+	                    <li><input type="button" id="INI_cert_search_btn" /></li>
+	                    <li><input type="button" id="INI_cert_detail_info_btn"/></li>
+	                    <li><input type="button" id="INI_cert_remove_btn" /></li>
+	                </ul>
+	            </div>
+	            <!--//Enter Password-->       
+	        </div>
+	        <div class="bottom_btn">
+	            <input type="button" class="confirm" id="INI_certSubmit" />
+	            <input type="button" class="cancel" id="INI_certClose" />
+	        </div>
+	    </div>
+	
+	</div>
+
+</body>
+
+</html>

@@ -1,0 +1,153 @@
+<!DOCTYPE HTML> 
+<html lang="ko"> 
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-compatible" content="IE=edge,chrome=1">
+<title></title>
+</head>
+<body>
+<div id="initech_certificate_wrap">
+    <div class="certificate">
+        <div class="window">
+            <!-- title 영역 -->
+            <div class="title_area">
+                <div class="title">
+					<h1  id="INI_cert_modal_title"></h1>
+                    <a class="window_close" id="INI_windowClose"></a>
+                </div>
+                 <div class="banner" id="INI_modal_logo"></div>
+            </div>
+            <!-- // title 영역 -->
+            <!-- 인증 영역 -->
+            <div class="window_data_area">
+	            
+	             <!-- 전자서명 내용확인  -->
+				<div id = 'certificate_signature_area'  class="certificate_signature_area INI_area">
+			         <p class="txt_notice" id="INI_signature_text"></p>
+			         <div class="signiture_info" id ="INI_sign_plan_table_data" style="height:156px !important;overflow-y:auto;">
+			         </div>
+			     </div>
+					
+                <!--저장매체 선택-->
+                <div id = 'media_select_area' class="media_select_area INI_area">
+                    <div class="media_select">
+                        <h2 class="section_title" id="INI_storage_select_title"></h2>
+                       
+                        <!-- 일반 저장 매체 리스트 -->
+                        <div id="INI_storage_list"> </div>
+                        <!-- // 일반 저장 매체 리스트 -->
+                        
+                        <!-- 확장매체 레이어 -->
+                        <div id="INI_storage_ext_list"> </div>
+                        <!-- // 확장매체 레이어 -->
+                    </div>
+                </div>
+                <!--//저장매체 선택-->
+                
+                <!-- 인증서 리스트 -->
+                <div id ="INI_certificate_area" class="INI_certificate_area INI_area">
+                <div  class="certificate_list_area">
+                    <h2 class="section_title"  id="INI_certificate_section_title"></h2>
+                     <a href="#none" class="more" style="display:none;"><i class="ico srh"></i></a>
+
+                    <div class="table_wrap" >	
+                        <table id="INI_certList"></table>
+                    </div>
+
+                    <div class="manage">	<!-- ***** 인증서관리일때 삭제 -->
+						<a data-task ="CERT_SEARCH"  id ="INI_CERT_SEARCH" class="INI_text_cert_manager INI_CERT_SEARCH accessWeb" >
+							<span id="INI_cert_search_title"  class="ico bring"></span>
+						</a>
+						<a data-task ="CERT_DETAIL" id ="NI_CERT_DETAIL"  class="INI_text_cert_manager INI_CERT_DETAIL accessWeb" >
+							<i class="ico view"></i>
+							<span  id="INI_cert_detail_info_title" ></span>
+						</a>
+						<a data-task ="CERT_REMOVE"  id ="INI_CERT_REMOVE"  class="INI_text_cert_manager INI_CERT_REMOVE accessWeb" >
+							<i class="ico del"></i>
+							<span  id="INI_cert_remove_title" ></span>
+						</a>
+						<a data-task ="CERT_MANAGER"  id ="INI_CERT_MANAGER" class="INI_text_cert_manager INI_CERT_MANAGER accessWeb">
+							<span  id="INI_cert_mgr_title"  class="ico set" id="INI_cert_mgr_btn" ></span>
+						</a>
+					</div> <!-- //***** 인증서관리일때 삭제 -->	
+                </div>  
+                </div>            		 			
+				<!--  // 인증서 리스트-->
+				
+				<!-- 액션에 따라 변화되는 영역 -->
+				<div id ="INI_change_area"  class ="INI_change_area INI_area" ></div>
+               	
+               	<!-- 인증서 관리 메뉴 버튼 -->
+				<div id ='certificate_manage' class="certificate_manage INI_area">
+					<h2 class="section_title" id="INI_certificate_manager_selected_msg"></h2>
+					<div>
+						<ul class="menu_list">
+							<li><a id="INI_mgr_cert_copy_btn" data-task ="CERT_COPY" class="INI_img_cert_manager accessWeb" ></a></li>
+							<li><a id="INI_mgr_remove_btn" data-task ="CERT_REMOVE" class="INI_img_cert_manager accessWeb"></a></li>
+							<li><a id="INI_mgr_search_btn" data-task ="CERT_SEARCH" class="INI_img_cert_manager accessWeb"></a></li>
+							<li><a id="INI_mgr_detail_info_btn" data-task ="CERT_DETAIL" class="INI_img_cert_manager accessWeb"></a></li>
+							<li><a id="INI_mgr_password_change_btn" data-task ="CERT_PWD_CHANGE" class="INI_img_cert_manager accessWeb"></a></li>
+							<li><a id="INI_mgr_export_btn" data-task ="CERT_EXPORT" class="INI_img_cert_manager accessWeb"></a></li>
+						</ul>
+					</div>
+				</div>
+				
+				<!-- 키보드 입력 박스 -->
+			    <div class="certifacte_input_area INI_area"  id ="certifacte_input_area">
+					<div class="certificate_password">
+                     	<div class = "certifacte_input certifacte_input_nonce" >
+	                     	<h2 id="ini_cert_pwd_label" class="section_title"></h2>
+	                        <div class="ini_keyboardwrap"> 
+	                            <input id="ini_cert_pwd"  type="password"  title="password">
+	                            <span class="keyboard"></span>
+	                     	 </div>
+                     	</div>	
+                        
+                        <div class = "certifacte_input certifacte_input_new_nonce" >
+	                        <h2 id="ini_cert_new_pwd_label" class="section_title"></h2>
+	                        <div class="ini_keyboardwrap">
+	                            <input id="ini_cert_new_pwd" type="password" title="password">
+	                            <span class="keyboard"></span>
+	                        </div>
+                        </div>
+                        <div class = "certifacte_input certifacte_input_new_nonce_cnf"" >	
+	                        <h2 id="ini_cert_new_pwd_cnf_label" class="section_title"></h2>
+	                        <div class="ini_keyboardwrap"> 
+	                            <input id="ini_cert_new_pwd_cnf" type="password" title="password">
+	                            <span class="keyboard"></span>
+	                         </div>
+                         </div>
+                         
+                         <div class = "certifacte_input certifacte_input_secure">
+	                         <h2 id="ini_cert_pin_label" class="section_title"></h2>
+	                         <div class="ini_keyboardwrap"> 
+	                            <input id="ini_cert_pin" type="password" title="password">
+	                            <span class="keyboard"></span>
+	                        </div>
+                        </div>	
+                        
+                           <div class = "certifacte_input certifacte_input_target_secure"">
+	                         <h2 id="ini_cert_target_pin_label" class="section_title"></h2>
+	                         <div class="ini_keyboardwrap"> 
+	                            <input id="ini_cert_target_pin" type="password" title="password">
+	                            <span class="keyboard"></span>
+	                        </div>
+                        </div>
+                    </div>  
+				</div>
+			   
+			   <!-- 보안 키보드 설치 및 안내  -->
+			   <div class="certificate_text_message" style="display:none;"></div>
+	           <!-- Caps 키 눌림 여부  -->
+	           <div id="CapsWarnToolTip" style="display:none;">Caps Lock is on.</div>
+			   
+			   <div class="confirm_btn_area" id ='confirm_btn_area'>
+					<button type="button" class="INI_emp" id="INI_certSubmit"></button>
+					<button type="button" class="cancel" id="INI_certClose"></button>
+				</div>
+            </div>
+        </div> <!-- // .window -->
+    </div> <!-- // .certificate -->
+</div> <!-- // #initech_certificate_wrap -->
+</body>
+</html>

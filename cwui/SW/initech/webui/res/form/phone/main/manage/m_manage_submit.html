@@ -1,0 +1,111 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="Cache-Control" content="no-cache"/> 
+	<meta http-equiv="Expires" content="0"/>
+	<meta http-equiv="Pragma" content="no-cache"/> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, target-densitydpi=device-dpi" />
+	<title></title>
+	
+	<script type="text/javascript">
+	
+		var goDetailFuc;
+		
+	 	require([GINI_MANIFEST["cwui.js"]], function(_ini) {
+	 		// color pack css 세팅
+    	    _ini.WebForm.getColorPackCss();
+	 	
+	   		var _handleInfo;
+	   		var thisModalId = "INI_mainModalDialog"; 
+			// 초기화
+			function initialize(){
+				_handleInfo = requirejs("jquery")("#" + thisModalId).data("GINI_handleInfo");
+				_handleInfo.serviceInfo.initialize();
+				_handleInfo.serviceInfo.setAction(_ini.constants.WebForm.ACTION_MANAGE);
+				_handleInfo.serviceInfo.setBehavior(_ini.constants.WebForm.ACTION_MANAGE);
+				_handleInfo.serviceInfo.setEventDeviceId(_ini.constants.Certs.STORAGE_BROWSER);
+				_handleInfo.serviceInfo.setDeviceSub(undefined);
+				_handleInfo.optionInfo.setParameter("USE_SESSION", false);
+				
+				_handleInfo.serviceInfo.setParameter("SUBMIT", 
+						function(){
+						requirejs("jquery")("#INI_ModalDialog_04").dialog('close');
+						requirejs("jquery")("#INI_ModalDialog_03").dialog('close');
+						requirejs("jquery")("#INI_subModalDialog").dialog('close');
+						_handleInfo.serviceInfo.setCallback(_ini.MobileForm.MobileDrawForm.drawMobileCertList);
+						_ini.Certs.getCertAttributeList(_handleInfo);
+					}
+				);
+				_handleInfo.serviceInfo.setCallback(_ini.MobileForm.MobileDrawForm.drawMobileCertList);
+				
+				_ini.Certs.getCertAttributeList(_handleInfo);
+			};
+			
+			// submit이전 Logic
+			requirejs("jquery")(document).ready(function() {
+				// 타이틀 변경 
+    			requirejs("jquery")("#INI_cert_modal_title").text(_ini.msgFactory.getMessageFactory().WebForm().TITLE().CERT_MANAGE_TITLE);
+				requirejs("jquery")("#IMI_M_SEARCH_DESC").html(_ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_MANAGE().W_T_C_M_011);
+				// 메세지 공통 처리
+				requirejs("jquery")(".prev").html('<img src="' + GINI_HTML5_BASE_PATH + '/res/img/mobile/common/dum_btn_prev.png" alt="'+_ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_003+'" />');
+				initialize();
+				
+				// 관리창 리스트 클릭 
+				requirejs("jquery")('.m-ini-cert-list a').click(function(){
+					e.preventDefault();
+					var thisObj = requirejs("jquery")(e.currentTarget);
+					// 새 레이어 열기 
+			        _handleInfo.serviceInfo.setParameter("CERT_ID", thisObj.attr('id'));
+					_ini.MobileForm.MobileSubForm(_ini.constants.WebForm.FormId.SubForm.CertDetailForm, _handleInfo);
+					return false;
+			    });
+				// 관리창 인증서 찾기 
+				requirejs("jquery")("#INI_M_SEARCH").click(function(){
+					// 찾기 완료 후 콜백은 인증서 목록 
+					_handleInfo.serviceInfo.setCallback(_ini.MobileForm.MobileDrawForm.drawMobileCertList);
+					_ini.MobileForm.MobileSubForm(_ini.constants.WebForm.FormId.SubForm.CertSearchEasyForm, _handleInfo, "INI_ModalDialog_03");
+					return false;
+			    }).css("cursor","pointer");
+				
+				goDetailFuc = function(id){
+					 _handleInfo.serviceInfo.setParameter("CERT_ID", id);
+					_ini.MobileForm.MobileSubForm(_ini.constants.WebForm.FormId.SubForm.CertDetailViewForm, _handleInfo);
+					return false;
+				}
+	    	});
+		});	
+	 	function goDetail(id){
+			goDetailFuc(id);
+		}
+	</script>
+
+</head>
+
+
+<body>
+   <div class="m-initech-certificate-wrap" id="m-initech-certificate-wrap">
+        <header class="sticky">
+            <div class="inner-wrap">
+				<h1 id="INI_cert_modal_title"></h1>
+				<a href="javascript:void(null);return false;" class="prev"></a>
+             </div>
+        </header>
+        <section class="m-ini-cert-cont">
+            <div class="inner-wrap">
+            
+            	<!-- 인증서 목록 -->
+				<div class="m-ini-cert-list" id="INI_M_CERTLIST"></div>
+				<!-- // 인증서 목록  -->
+                <!-- 인증서 찾기 -->
+                <div class="m-ini-cert-more" id="INI_M_SEARCH">
+                    <a href="javascript:void(null);return false;" id="IMI_M_SEARCH_DESC"></a>
+                </div>
+                <!-- // 인증서 찾기 -->
+	            </div>
+        </section> <!-- // .cert-contents -->
+    </div> <!-- // .m-initech-certificate-wrap -->
+
+</body>
+
+</html>

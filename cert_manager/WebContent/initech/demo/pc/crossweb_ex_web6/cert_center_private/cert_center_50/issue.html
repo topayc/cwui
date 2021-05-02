@@ -1,0 +1,58 @@
+<%@ page language="java" contentType="text/html; charset=EUC-KR" pageEncoding="EUC-KR"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=EUC-KR">
+
+<link href="/common/style/body_style.css" rel="stylesheet" type="text/css"></link>
+<link href="/common/style/table_style.css" rel="stylesheet" type="text/css"></link>
+<link href="/common/style/text_style.css" rel="stylesheet" type="text/css"></link>
+<link href="/common/style/form_style.css" rel="stylesheet" type="text/css"></link>
+
+<script src="/initech/common/common.js"></script>
+<script src="/common/script/jquery-1.11.1.js"></script>
+<script src="/common/script/jquery.mobile-1.1.0-rc.1.min.js"></script>
+<script language="javascript" src="/demo/pc/moasign/script/moasign.js"></script>
+
+<script>
+function generateValue() {
+		var result = "7";
+		for(var i=0 ; i<12 ; i++) {
+			result += Math.floor(Math.random() * 10); 
+		}
+
+		document.getElementById("user_id").value = "T"+result;
+	}
+
+
+
+</script>
+</head>
+
+<body onLoad="generateValue()">
+<div data-role="page" id="issue_page">
+		<div data-theme="a" data-role="header">
+			<a href="../login.html" data-role="button" data-icon="home" data-iconpos="notext" rel="external"></a>
+			<h3>
+				인증서 발급(v50)
+			</h3>
+		</div>
+		<div data-role="content">
+			<form action="issue.jsp" method="post" name="issueForm" id="issueForm" data-ajax="false">
+			사용자ID<input type="text" name="user_id" id="user_id" value="">
+			<input type="text" id="entity_type" name="entity_type" value="USER">
+			<input type="text" id="profile" name="profile" value="Identification">
+			<input type="text" id="group" name="group" value="Default Group">
+
+			<input type="text" id="refNum" name="refNum">
+			<input type="text" id="authCode" name="authCode">
+
+			<input type="submit" value="인증서 등록 요청" />
+			<!--
+			<button id="registBtn" name="registBtn">인증서 등록 요청</button>
+			-->
+		</form>
+		</div>
+	</div>
+</body>
+</html>

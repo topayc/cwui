@@ -1,0 +1,461 @@
+﻿{
+	"Host" : "localhost",
+	"LOCAL_HOST" : "localhost",
+	"DEV_HOST" : "dev.initech.com",
+	"TEST_HOST" : "test.initech.com",
+	"REAL_HOST" : "real.initech.com",
+	"CustomerCode" : "custom_code",
+	"Download" : {
+		"IMPORT_CERT_DOWNLOAD" : {
+			"URL" : "/SW/initech/certutil/kor/download/",
+			"FILE_NAME_WINDOW" : "IniCertUtil_for_windows_v1.0.1.exe",
+			"FILE_NAME_MAC" : "IniCertUtil_for_mac_v1.0.dmg",
+			"FILE_NAME_LINUX" : "IniCertUtil_for_linux_v1.0.tar.gz",
+			"FILE_NAME_LINUX_32" : "IniCertUtil_for_linux_i386_v1.0.1.tar.gz",
+			"FILE_NAME_LINUX_64" : "IniCertUtil_for_linux_x86_64_v1.0.1.tar.gz"
+		}
+	},
+
+	"System" : {
+		"Language" : "kor",
+		"LogLevel" : 5,
+		"Core" : "forge",
+		"OperationMode" : "TEST_MODE",
+		"UseInipluginData" : true,
+		"ExternalType" : "CROSSWEB_EX",
+		"FormTypeMain" : "DIALOG",
+		"FormTypeSub" : "LAYER",
+		"CertImportExportLimitTime" : 180,
+		"CmpServiceType" : "CMP_RELAY",
+		"EncryptedPacketMode" : true,
+		"PcInfo" : [],
+		"UrlAddress_LOCAL" : {
+			"URL": "http://localhost:5000",
+			"DERIVED_KEY" : "/SW/initech/webui/approve/derived_key.jsp",
+			"SYNCHRONISE" : "http://localhost:5000/SW/initech/webui/approve/authority.jsp",
+			"KEY_PAIR" : "http://localhost:5000/SW/initech/webui/approve/key_pair.jsp",
+			"SYNCHRONISE_TIME" : "http://localhost:5000/SW/initech/webui/approve/sincronizare_time.jsp",
+			"CERT_RELAY_EXPORT" : "http://localhost:5000/CertRelay/servlet/GetCertificateV12",
+			"CERT_RELAY_IMPORT" : "http://localhost:5000/CertRelay/servlet/GetCertificateV12",
+			"CERT_RELAY_EXPORT_V11" : "http://localhost:5000/SW/initech/webui/certRelay/GetCertificate_v11.jsp",
+			"CERT_RELAY_IMPORT_V11" : "http://localhost:5000/SW/initech/webui/certRelay/GetCertificate_v11.jsp",
+			"CERT_CMP_GATE1" : "http://localhost:5000/SW/initech/webui/cmp/cmp_gate.jsp",
+			"CERT_CMP_GATE2" : "http://localhost:5000/SW/initech/webui/cmp/cmp_gate2.jsp",
+			"CrossDomainStorageURL" : {
+				"dns": "http://localhost:5000",
+				"path": "/SW/initech/webui/crossd_iframe.html",
+				"check": "//SW/initech/webui/crossd_check.html"
+			}
+		},
+		"UrlAddress_DEV" : {
+			"URL": "http://dev.initech.com:5000",
+			"DERIVED_KEY" : "/SW/initech/webui/approve/derived_key.jsp",
+			"SYNCHRONISE" : "http://dev.initech.com:5000/SW/initech/webui/approve/authority.jsp",
+			"KEY_PAIR" : "http://dev.initech.com:5000/SW/initech/webui/approve/key_pair.jsp",
+			"SYNCHRONISE_TIME" : "http://dev.initech.com:5000/SW/initech/webui/approve/sincronizare_time.jsp",
+			"CERT_RELAY_EXPORT" : "http://dev.initech.com:5000/CertRelay/servlet/GetCertificateV12",
+			"CERT_RELAY_IMPORT" : "http://dev.initech.com:5000/CertRelay/servlet/GetCertificateV12",
+			"CERT_RELAY_EXPORT_V11" : "http://dev.initech.com:5000/SW/initech/webui/certRelay/GetCertificate_v11.jsp",
+			"CERT_RELAY_IMPORT_V11" : "http://dev.initech.com:5000/SW/initech/webui/certRelay/GetCertificate_v11.jsp",
+			"CERT_CMP_GATE1" : "http://dev.initech.com:5000/SW/initech/webui/cmp/cmp_gate.jsp",
+			"CERT_CMP_GATE2" : "http://dev.initech.com:5000/SW/initech/webui/cmp/cmp_gate2.jsp",
+			"CrossDomainStorageURL" : {
+				"dns": "http://dev.initech.com:5000",
+				"path": "/SW/initech/webui/crossd_iframe.html",
+				"check": "//SW/initech/webui/crossd_check.html"
+			}
+		},
+		"UrlAddress_TEST" : {
+			"DERIVED_KEY" : "http://test.initech.com:5000/SW/initech/webui/approve/derived_key.jsp",
+			"SYNCHRONISE" : "http://test.initech.com:5000/SW/initech/webui/approve/authority.jsp",
+			"KEY_PAIR" : "http://test.initech.com:5000/SW/initech/webui/approve/key_pair.jsp",
+			"SYNCHRONISE_TIME" : "http://test.initech.com:5000/SW/initech/webui/approve/sincronizare_time.jsp",
+			"CERT_RELAY_EXPORT" : "http://test.initech.com:5000/CertRelay/servlet/GetCertificateV12",
+			"CERT_RELAY_IMPORT" : "http://test.initech.com:5000/CertRelay/servlet/GetCertificateV12",
+			"CERT_RELAY_EXPORT_V11" : "http://test.initech.com:5000/SW/initech/webui/certRelay/GetCertificate_v11.jsp",
+			"CERT_RELAY_IMPORT_V11" : "http://test.initech.com:5000/SW/initech/webui/certRelay/GetCertificate_v11.jsp",
+			"CERT_CMP_GATE1" : "http://test.initech.com:5000/SW/initech/webui/cmp/cmp_gate.jsp",
+			"CERT_CMP_GATE2" : "http://test.initech.com:5000/SW/initech/webui/cmp/cmp_gate2.jsp",
+			"CrossDomainStorageURL" : {
+				"dns": "http://test.initech.com:5000",
+				"path": "/SW/initech/webui/crossd_iframe.html",
+				"check": "//SW/initech/webui/crossd_check.html"
+			}
+		},
+		"UrlAddress_REAL" : {
+			"DERIVED_KEY" : "http://real.initech.com:5000/SW/initech/webui/approve/derived_key.jsp",
+			"SYNCHRONISE" : "http://real.initech.com:5000/SW/initech/webui/approve/authority.jsp",
+			"KEY_PAIR" : "http://real.initech.com:5000/SW/initech/webui/approve/key_pair.jsp",
+			"SYNCHRONISE_TIME" : "http://real.initech.com:5000/SW/initech/webui/approve/sincronizare_time.jsp",
+			"CERT_RELAY_EXPORT" : "http://real.initech.com:5000/CertRelay/servlet/GetCertificateV12",
+			"CERT_RELAY_IMPORT" : "http://real.initech.com:5000/CertRelay/servlet/GetCertificateV12",
+			"CERT_RELAY_EXPORT_V11" : "http://real.initech.com:5000/SW/initech/webui/certRelay/GetCertificate_v11.jsp",
+			"CERT_RELAY_IMPORT_V11" : "http://real.initech.com:5000/SW/initech/webui/certRelay/GetCertificate_v11.jsp",
+			"CERT_CMP_GATE1" : "http://real.initech.com:5000/SW/initech/webui/cmp/cmp_gate.jsp",
+			"CERT_CMP_GATE2" : "http://real.initech.com:5000/SW/initech/webui/cmp/cmp_gate2.jsp",
+			"CrossDomainStorageURL" : {
+				"dns": "http://real.initech.com:5000",
+				"path": "/SW/initech/webui/crossd_iframe.html",
+				"check": "//SW/initech/webui/crossd_check.html"
+			}
+		}
+	},
+	"WebForm" : {
+		"CustomerTitleKor" : "고객사 명칭", 
+		"CustomerTitleEng" : "CUSTOMER",
+		"LoginTitleKor" : "공인인증서 인증",
+		"LoginTitleEng" : "LOGIN",
+		"SignTitleKor" : "전자서명",
+		"SignTitleEng" : "SIGN",
+		"CertManageTitleKor" : "인증서 관리",
+		"CertManageTitleEng" : "CERT MANAGER",
+		"CertIssueTitleKor" : "인증서 발급",
+		"CertIssueTitleEng" : "CERT ISSUE",
+		"CertReissueTitleKor" : "인증서 재발급",
+		"CertReissueTitleEng" : "CERT REISSUE",
+		"CertUpdateTitleKor" : "인증서 갱신",
+		"CertUpdateTitleEng" : "CERT UPDATE",
+		"CertRevokeTitleKor" : "인증서 폐기",
+		"CertRevokeTitleEng" : "CERT REVOKE",
+		
+		"ColorPackCss" : "/res/style/color_identity_blue.css",
+		"ColorPackImagePath" : "/res/img/color_identity_blue/",
+		
+		"Logo" : "/res/img/banner/voice.demo.initech.com.png",
+		"SubLogo" : "/res/img/banner/banner.demo.initech.com.png",
+		
+		"EngLogo" : "/res/img/banner/banner.demo.initech.com.png",
+		
+		"AnotherSave" : true,
+		"DisplayHSMwithUSIM" : 0,
+		"PasswordLimit" : {
+			"MIN_LENGTH" : 10,
+			"MAX_LENGTH" : 30,
+			"DENY_SAME_CHAR3" : true,
+			"DENY_SERIAL_CHAR3" : true,
+			"DENY_SAME_CHAR_LENGTH" : 3,
+			"DENY_SERIAL_CHAR_LENGTH" : 3,
+			"MIN_CHAR_TYPE" : "ANS"
+		},
+		"STORAGE_POSITION" : [
+			"BROWSER",
+			"HARD_DISK",
+			"REMOVABLE_DISK",
+			"MOBILE",
+			"EXTEND"
+		],
+		"STORAGE_EXT_POSITION" : [
+			"SECURITY_DEVICE", 
+			"SECURITY_TOKEN",
+			"SMART_CARD",
+			"USIM"
+		],
+		"STORAGE_TARGET_POSITION" : [
+			"BROWSER",
+			"HARD_DISK",
+			"REMOVABLE_DISK",
+			"SECURITY_TOKEN",
+			"SMART_CARD",
+			"SECURITY_DEVICE"
+		],
+		"ANOTHER_STORAGE_EXT_POSITION" : [
+			"SECURITY_DEVICE" ,
+			"USIM"
+		],
+		
+		"ANOTHER_STORAGE_TARGET_POSITION" : [
+			"BROWSER",
+			"HARD_DISK",
+			"REMOVABLE_DISK",
+			"MOBILE",
+			"SECURITY_TOKEN"
+		],
+		"STORAGE_ATTRIBUTES" : {
+			"BROWSER" : {
+				"DISABLE" : false
+			},
+			"HARD_DISK" : {
+				"DISABLE" : false
+			},
+			"LOCAL_DISK" : {
+				"DISABLE" : false
+			},
+			"REMOVABLE_DISK" : {
+				"DISABLE" : false
+			},
+			"SECURITY_TOKEN" : {
+				"STORAGE_ID" : "SECURITY_TOKEN",
+				"DISABLE" : false,
+				"CLASS_ID" : "token",
+				"DESC_TEXT" : {
+					"kor" : "보안토큰",
+					"eng" : "Security Token"
+				},
+				"BOTTOM_BUTTON_ACTION" : true,
+				"ALLOW_ACTION" : [
+					"LOGIN",
+					"SIGN",
+					"MANAGE",
+					"IMPORT",
+					"SAVE",
+					"ISSUE",
+					"REISSUE",
+					"UPDATE",
+					"REVOKE",
+					"CMP",
+					"REMOVE",
+					"COPY"
+				]
+			},
+			"SMART_CARD" : {
+				"DISABLE" : false
+			},
+			"CLOUD" : {
+				"DISABLE" : true
+			},
+			"EXTEND" : {
+				"DISABLE" : false
+			},
+			"MOBILE" : {
+				"STORAGE_ID" : "MOBILE",
+				"DISABLE" : false, 
+				"CLASS_ID" : "cellphone",
+				"DESC_TEXT" : {
+					"kor" : "휴대폰",
+					"eng" : "Mobile"
+				},
+				"BOTTOM_BUTTON_ACTION" : false,
+ 				"SUB_TYPE" : "CS",
+				"ALLOW_ACTION" : [
+					"LOGIN",
+					"SIGN",
+					"SAVE",
+					"ISSUE",
+					"REISSUE",
+					"UPDATE",
+					"CMP"
+				]
+			},
+			"BAROSIGN" : {
+				"STORAGE_ID" : "BAROSIGN",
+				"DISABLE" : true,
+				"CLASS_ID" : "qr_code",
+				"DESC_TEXT" : {
+					"kor" : "바로사인",
+					"eng" : "BaroSign"
+				},
+				"BOTTOM_BUTTON_ACTION" : false,
+				"ALLOW_ACTION" : [
+					"LOGIN",
+					"SIGN"
+				]
+			},
+			"REMOVABLE_DISK" : {
+				"STORAGE_ID" : "REMOVABLE_DISK",
+				"DISABLE" : false,
+				"CLASS_ID" : "removable",
+				"DESC_TEXT" : {
+					"kor" : "이동식디스크",
+					"eng" : "RemovableDisk"
+				},
+				"BOTTOM_BUTTON_ACTION" : true,
+				"SUB_TYPE" : "CS",
+				"ALLOW_ACTION" : ["ALL"]
+			},
+			"SECURITY_DEVICE" : {
+				"DISABLE" : false
+			}
+		}
+	},
+	"Certs" : {
+		"CertAttrPosition" : [					
+			"OID_NAME",
+			"SUBJECT",
+			"EXPIRE_DATE",
+			"ISSUER"
+		],
+		"CertAttrPositionId" : ["gubun","user","use_dt","make"],
+		"FilterList" : {
+			"CACHE" : true,
+			"ISSUER_HASH" : false,
+			"EXPIRE" : false,
+			"OID" : [],
+			"ISSUER" : [],
+			"ISSUER_CN" : []
+		},
+		"USIMFilterList" : {
+			"USIM_FILTER_OID" : "1.2.410.200005.1.1.1|1.2.410.200005.1.1.2",
+			"USIM_FILTER_ISSUERDN" : "yessignCA-Test Class 3",
+			"USIM_FILTER_CA" : "yessignCA Class 1|yesignCA class 2",
+			"USIM_FILTER_EXPIRED" : "1"
+		},
+		"CertExpireNoticeDate" : 30,	
+		"ExternalSupportType" : "CROSSWEB_EX",
+		"SortObject" : "BEFORE_DT",	   
+		"SortType" : "DESC",
+		"OID_Alias" : {
+			"a1" : "1.2.410.200005.1.1.1",
+			"a2" : "1.2.410.200005.1.1.5",
+			"a4" : "1.2.410.200005.1.1.4",
+			"a5" : "1.2.410.200005.1.1.2",
+			"a6" : "1.2.410.200005.1.1.6.2",
+			"a7" : "1.2.410.200005.1.1.6.8",
+			"b1" : "1.2.410.200012.1.1.1",
+			"b2" : "1.2.410.200012.1.1.3",
+			"b4" : "1.2.410.200012.1.1.101",
+			"b5" : "1.2.410.200012.1.1.105",
+			"b6" : "1.2.410.200012.5.19.1.1",
+			"b7" : "1.2.410.200012.1.1.103",
+			"c1" : "1.2.410.200004.5.1.1.5",
+			"c2" : "1.2.410.200004.5.1.1.7",
+			"c4" : "1.2.410.200004.5.1.1.9.2",
+			"c5" : "1.2.410.200004.5.1.1.9",
+			"c6" : "1.2.410.200005.1.1.12.902",
+			"c7" : "1.2.410.200004.5.1.1.9.1",
+			"c8" : "1.2.410.200004.5.1.1.10",
+			"c9" : "1.2.410.200004.5.1.1.10.1",
+			"c10" : "1.2.410.200004.5.1.1.10.2",
+			"a" : "1.2.410.200004.5.1.1.11",
+			"d1" : "1.2.410.200004.5.2.1.2",
+			"d2" : "1.2.410.200004.5.2.1.1",
+			"d4" : "1.2.410.200004.5.2.1.7.1",
+			"d5" : "1.2.410.200004.5.2.1.7.3",
+			"e1" : "1.2.410.200004.5.4.1.1",
+			"e2" : "1.2.410.200004.5.4.1.2",
+			"e4" : "1.2.410.200004.5.4.1.101|1.2.410.200004.5.4.1.102",
+			"e5" : "1.2.410.200004.5.4.1.103",
+			"e6" : "1.2.410.200004.5.4.2.80",
+			"f1" : "1.2.410.200004.5.3.1.1",
+			"f2" : "1.2.410.200004.5.3.1.2",
+			"f3" : "1.2.410.200004.5.3.1.9",
+			"f4" : "1.2.410.100001.2.2.1|1.2.410.100001.2.2.2|1.2.410.100001.2.1.1|1.2.410.100001.2.1.2|1.2.410.100001.2.1.3|1.2.410.100001.2.1.4|1.2.410.100001.2.1.5|1.2.410.100001.2.1.6|1.2.410.100001.5.3.1.1|1.2.410.100001.5.3.1.3|1.2.410.100001.5.3.1.5|1.2.410.100001.5.3.1.7|1.2.410.100001.5.3.1.9"
+		}
+	},
+	"Messages" : {},
+	"Utils" : {
+		"dateFormat" : "yyyy-mm-dd",
+		"dateTimeFormat" : "yyyy-mm-dd HH:mi:ss"
+	},
+	"Login" : {
+		"LoginType" : "PKCS1",
+		"SignatureHash" : "sha256"
+	},
+	"Signature" : {
+		"UrlEncodeCharSet" : {
+			"ORIGIRAL_CHAR_SET" : "utf8",
+			"ORIGIRAL_URL_ENCODE" : true,
+			"SIGN_URL_ENCODE" : true,
+			"SIGN_CHAR_SET" : "utf8"
+		},
+		"SignatureAlg" : "rsaEncryption",
+		"SignatureHash" : "sha256",
+		"PlanTextViewType" : "GRID",
+		"StorageHide" : true,
+		"KeyValueDelimiter" : "=",
+		"FieldDelimiter" : "&",
+		"MultiDelimiter" : "-----------------------------------------",
+		"Base64DecodeAfterSign" : "FALSE",
+		"DecorationTag" : null,
+		"KftcSignFormat" : "FALSE",
+		"IncludeRandomSignFormat" : "FALSE",
+		"RemoveContentSignFormat" : "FALSE",
+		"FormElementFilter" : []
+	},
+	"CAInfo_DEV" : {
+		"YessignCA" : {
+			"IP" : "203.233.91.231",		
+			"PORT" : "4512",
+			"NAME" : "YESSIGN"
+		},
+		"CrossCertCA" : {
+			"IP" : "211.180.234.201",		
+			"PORT" : "4512",
+			"NAME" : "CROSSCERT"
+		},
+		"SignKoreaCA" : {
+			"IP" : "211.175.81.101",		
+			"PORT" : "4099",
+			"NAME" : "SIGNKOREA"
+		},
+		"SignGateCA" : {
+			"IP" : "114.108.187.156",
+			"PORT" : "4502",
+			"NAME" : "SIGNGATE"
+		},
+		"InitechCA" : {
+			"IP" : "172.20.26.23",
+			"PORT" : "4007",
+			"NAME" : "INITECHCA"
+		}
+	},
+	"CAInfo_REAL" : {
+		"YessignCA" : {
+			"IP" : "203.233.91.231",		
+			"PORT" : "4512",
+			"NAME" : "YESSIGN"
+		},
+		"CrossCertCA" : {
+			"IP" : "211.180.234.201",		
+			"PORT" : "4512",
+			"NAME" : "CROSSCERT"
+		},
+		"SignKoreaCA" : {
+			"IP" : "211.175.81.101",		
+			"PORT" : "4099",
+			"NAME" : "SIGNKOREA"
+		},
+		"SignGateCA" : {
+			"IP" : "114.108.187.156",
+			"PORT" : "4502",
+			"NAME" : "SIGNGATE"
+		},
+		"InitechCA" : {
+			"IP" : "172.20.26.23",
+			"PORT" : "4007",
+			"NAME" : "INITECHCA"
+		}
+	},
+	"KeyStrokeSecurity" : {
+		"DefaultKeyStrokeSecurity" : null,
+		"AhnlabE2EType" : "22",
+		"#AhnlabE2EType" : "21:키입력 보호, 입력필드  value유지, 22:키입력 보호, 입력필드 더미값",
+		"KeyStrokeSecurityList" : [
+			{
+			   "KEYPAD_NAME":"TOUCHEN_KEY",
+			   "TYPE":"KEYBOARD",
+			   "OS":["ALL"],
+			   "BROWSER":["ALL"],
+			   "DEVICE":["ALL"],
+			   "ACTION":["ALL"],
+			   "USE":"Y"
+			},
+			{
+			   "KEYPAD_NAME":"AHNLAB_KEY",
+			   "TYPE":"KEYBOARD",
+			   "OS":["ALL"],
+			   "BROWSER":["ALL"],
+			   "DEVICE":["ALL"],
+			   "ACTION":["ALL"],
+			   "USE":"N"
+			},
+			{
+			   "KEYPAD_NAME":"TRANS_KEY",
+			   "TYPE":"KEYPAD",
+			   "OS":["ALL"],
+			   "BROWSER":["ALL"],
+			   "DEVICE":["ALL"],
+			   "ACTION":["ALL"],
+			   "USE":"N"
+		   },
+		   {
+			   "KEYPAD_NAME":"UNIWEB_KEY",
+			   "TYPE":"KEYPAD",
+			   "OS":["ALL"],
+			   "BROWSER":["ALL"],
+			   "DEVICE":["ALL"],
+			   "ACTION":["ALL"],
+			   "USE":"N"
+		   }
+		]
+	}
+}

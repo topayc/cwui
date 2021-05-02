@@ -1,0 +1,132 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, target-densitydpi=device-dpi" />
+	<title></title>
+
+	<script type="text/javascript">
+	
+		require([GINI_MANIFEST["cwui.js"]], function(_ini) {
+			
+			// color pack css 세팅
+    	    _ini.WebForm.getColorPackCss();
+			
+	   		var _handleInfo = requirejs("jquery")("#INI_ModalDialog_03").data("GINI_handleInfo");
+	   		_handleInfo.optionInfo.setParameter("USE_SESSION", true);
+			// 초기화
+			function initialize(){
+				_handleInfo.serviceInfo.setEventDeviceId(_ini.constants.Certs.STORAGE_BROWSER);
+				_handleInfo.serviceInfo.setDeviceSub(undefined);
+			};
+			
+			// 인증서 중계서버 가져오기
+			function submitProc(INI_authNum){
+				if((INI_authNum === undefined) || (INI_authNum === null) || (INI_authNum === '')){
+					INI_HANDLE.warnMessage(_ini.msgFactory.getMessageFactory().Warn.WARN_1012);
+					requirejs("jquery")('#INI_authNum').focus();
+				 	return;
+				}
+				
+				function doCallBack(encCert){
+					_handleInfo.serviceInfo.setParameter("SAVE_TYPE", "p12");
+					_handleInfo.serviceInfo.setParameter("SAVE_SUBMIT", "Y");
+					_handleInfo.serviceInfo.setParameter("ENC_P12_CERT", encCert);
+					
+					_ini.MobileForm.MobileSubForm(_ini.constants.WebForm.FormId.SubForm.CertSaveDetailForm, _handleInfo, "INI_ModalDialog_04");
+// 					requirejs("jquery")("#INI_simpel_form").html("");
+				}
+				
+   				_handleInfo.serviceInfo.setParameter("AUTH_NUM", INI_authNum);
+   				_handleInfo.serviceInfo.setCallback(doCallBack);
+
+   				_ini.CertManager.certImportExport.importCertV12(_handleInfo, doCallBack);
+			};
+			
+	
+			requirejs("jquery")(document).ready(function() {
+				
+    			// next button click
+    			requirejs("jquery")('#INI_certSearchSubmit').click(function(){
+    				var INI_authNum = requirejs("jquery")('input[name="INI_authNum"]').eq(0).val() + requirejs("jquery")('input[name="INI_authNum"]').eq(1).val();
+    				if( INI_authNum == "" ){
+    					INI_HANDLE.warnMessage(_ini.msgFactory.getMessageFactory().Warn.WARN_1028);
+    				}else{
+    					submitProc(INI_authNum);	
+    				}
+    				return false;
+    			});
+    			
+				// 취소 버튼 
+				requirejs("jquery")('#INI_search_easy_cancel').click(function(){
+					requirejs("jquery")("#INI_ModalDialog_03").dialog('close');
+				});
+				// 취소 버튼 
+				requirejs("jquery")('.prev').click(function(){
+					requirejs("jquery")("#INI_ModalDialog_03").dialog('close');
+				});
+				
+				/* 메세지 처리 공통 처리 */
+				requirejs("jquery")(".prev").html('<img src="' + GINI_HTML5_BASE_PATH + '/res/img/mobile/common/dum_btn_prev.png" alt="'+_ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_003+'" />');
+    			requirejs("jquery")("#INI_SIMPLE_SEARCH_ICON_IMG").attr("src", GINI_HTML5_BASE_PATH + "/res/img/mobile/common/dum_srh_icon.png");
+    			
+				requirejs("jquery")("#INI_certSearchSubmit").text( _ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_020 );			// 다음
+				requirejs("jquery")("#INI_search_easy_cancel").text(_ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_002);// 취소				
+    			
+				requirejs("jquery")("#INI_search_easy_title").text( _ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_SEARCH().W_T_C_S_011  );			// 취소				
+				requirejs("jquery")("#msg_cert_search_title").html(	_ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_SEARCH().W_T_C_S_015 );		// 프로그램 화면에 표시된 인증번호를<br> 입력하시고, 다음 버튼을 터치 해 주세요.
+				
+				requirejs("jquery")("#msg_noti1").html( _ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_SEARCH().M_W_T_C_S_017 );		//PC에서 오픈뱅킹(bank.shinnan.com)으로 접속하신 후 공인인증센터의 <em>‘스마트폰 인증서복사  → 기기(브라우저)간 복사’→기기간 인증서 내보내기</em> 버튼을 선택하시기 바랍니다.
+				requirejs("jquery")("#msg_noti2").html( _ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_SEARCH().M_W_T_C_S_018 );		//PC에 복사할 인증서 암호를 입력 → 모바일에서 <em>인증번호 8자리를 입력</em>하시고 다음 버튼을 선택하시기 바랍니다.',
+				requirejs("jquery")("#msg_noti3").html( _ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_SEARCH().M_W_T_C_S_019 );		//PC에서 스마트폰으로 인증서 복사 완료 시 <em>스마트폰 및 PC에서 완료 안내를 확인</em>하시기 바랍니다.',
+				
+				initialize();
+	    	});
+		});	
+
+	</script>
+
+</head>
+
+<body>
+    <div class="m-initech-certificate-wrap" id="m-initech-certificate-wrap">
+        <header class="sticky">
+            <div class="inner-wrap">
+                <h1 id="INI_search_easy_title"></h1>
+                <a href="javascript:void(null);return false;" class="prev"></a>
+            </div>
+        </header>
+        <section class="m-ini-cert-cont">
+            <div class="inner-wrap">
+                <!-- 인증서 찾기 -->
+                <div class="m-ini-search simple">
+                    <p id="msg_cert_search_title"></p>
+                    <span class="icon simple"><img id="INI_SIMPLE_SEARCH_ICON_IMG" alt=""></span>
+                   	<div class="table">
+                        <span class="input-wrap"><input name="INI_authNum" type="number" maxlength="4" oninput="INI_maxLengthCheck(this);" onkeydown="return INI_onlyNumber(event)" onkeyup="INI_removeChar(event)" ></span>
+                        <span>&nbsp;</span>
+                        <span class="input-wrap"><input name="INI_authNum" type="number" maxlength="4" oninput="INI_maxLengthCheck(this);" onkeydown="return INI_onlyNumber(event)" onkeyup="INI_removeChar(event)" ></span>
+                    </div>
+                </div>
+                <!-- // 인증서 찾기 -->
+                <!-- 버튼 영역 -->
+                <div class="m-ini-mcert-btns">
+                    <span id="INI_BACK_BTN"><a href="javascript:void(null);return false;" id="INI_search_easy_cancel"></a></span>
+                    <span>&nbsp;</span>
+                    <span><a href="javascript:void(null);return false;" class="emp"  id="INI_certSearchSubmit"></a></span>
+                </div>
+                <!-- // 버튼 영역 -->
+                <ul class="panel notice">
+                    <li id="msg_noti1"><i class="num" >1</i></li>
+                    <li id="msg_noti2"><i class="num">2</i></li>
+                    <li id="msg_noti3"><i class="num">3</i></li>
+                </ul>
+            </div>
+        </section> <!-- // .cert-contents -->
+    </div> <!-- // .m-initech-certificate-wrap -->
+    
+</body>
+</html>

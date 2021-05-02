@@ -1,0 +1,263 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, target-densitydpi=device-dpi" />
+	<title></title>
+	
+	<script type="text/javascript">
+		require([GINI_MANIFEST["cwui.js"]], function(_ini) {
+			
+			// color pack css 세팅
+    	    _ini.WebForm.getColorPackCss();
+			
+			var _handleInfo = requirejs("jquery")("#INI_ModalDialog_03").data("GINI_handleInfo");
+			_handleInfo.optionInfo.setParameter("USE_SESSION", true);
+			
+			// 초기화
+			function initialize(){
+				// 디바이스 세팅(모바일은 브라우저만)
+				_handleInfo.serviceInfo.setEventDeviceId(_ini.constants.Certs.STORAGE_BROWSER);
+				_handleInfo.serviceInfo.setDeviceSub(undefined);
+				_handleInfo.serviceInfo.setCallback(_ini.MobileForm.drawMobileCertDetailInfo);
+				// 저장뒤 행해질 행동(Y이면 로그인/전자서명 등을 실행함.)
+				_handleInfo.serviceInfo.setParameter("SAVE_SUBMIT", "Y");
+				// 파일 이벤트 등록.
+				if(window.addEventListener){
+					document.getElementById('INI_certp12_findfiles').addEventListener('change', mobileFileSelectHandle, false);
+					document.getElementById('INI_cert_findfiles').addEventListener('change', mobileFileSelectHandle, false);
+					document.getElementById('INI_privateKey_findfiles').addEventListener('change', mobileFileSelectHandle, false);
+			    }else if (window.attachEvent){
+					document.getElementById('INI_certp12_findfiles').attachEvent('change', mobileFileSelectHandle);
+					document.getElementById('INI_cert_findfiles').attachEvent('change', mobileFileSelectHandle);
+					document.getElementById('INI_privateKey_findfiles').attachEvent('change', mobileFileSelectHandle);
+			    }
+			};
+			
+			function mobileFileSelectHandle(evt) {
+				var fileViewId = evt.target.id;
+				var file = (evt.target.files)[0];
+				var fileName = file.name; 
+				var fileExt = fileName.substr(fileName.lastIndexOf(".")+1, fileName.length).toLowerCase();
+				
+				_handleInfo.serviceInfo.setParameter("FILE_NAME", fileName);
+
+				if(fileViewId === "INI_cert_findfiles"){
+					// 인증서 파일 체크
+					if (fileExt.match(/der.*/)) {
+						requirejs("jquery")("#INI_cert_findfiles_text").val(fileName);
+						_handleInfo.serviceInfo.setParameter("SAVE_TYPE", "der");
+						var readerCert = new FileReader();
+						readerCert.onerror = function(e){
+							INI_HANDLE.infoMessage(e);
+						};
+						readerCert.onload = function(e) {
+							_handleInfo.serviceInfo.setParameter("DER_CERT", readerCert.result);
+						}
+						readerCert.readAsArrayBuffer(file);
+					} else {
+						
+						INI_HANDLE.infoMessage( _ini.msgFactory.getMessageFactory().Warn.WARN_1060 ); //"der 인증서 파일이 아닙니다."
+					}
+				} else if (fileViewId === "INI_privateKey_findfiles"){
+					// 개인키 파일 체크
+					if (fileExt.match(/key.*/)) {
+						requirejs("jquery")("#INI_privateKey_findfiles_text").val(fileName);
+						_handleInfo.serviceInfo.setParameter("SAVE_TYPE", "der");
+						var readerPri = new FileReader();
+						readerPri.onerror = function(e){
+							INI_HANDLE.infoMessage(e);
+						};
+						readerPri.onload = function(e) {
+							_handleInfo.serviceInfo.setParameter("DER_PRIVATEKEY", readerPri.result);
+						}
+						readerPri.readAsArrayBuffer(file);
+					} else {
+						INI_HANDLE.infoMessage( _ini.msgFactory.getMessageFactory().Warn.WARN_1059 ); //"개인키 파일이 아닙니다."
+					}
+					
+				} else if (fileViewId === "INI_certp12_findfiles"){
+					// p12 파일 체크
+					if (fileExt.match(/pfx.*/) || fileExt.match(/p12.*/)) {
+						requirejs("jquery")("#INI_certp12_findfiles_text").val(fileName);
+						_handleInfo.serviceInfo.setParameter("SAVE_TYPE", "p12");
+						var readerPfx = new FileReader();
+						readerPfx.onerror = function(e){
+							INI_HANDLE.infoMessage(e);
+						};
+						readerPfx.onload = function(e) {
+							_handleInfo.serviceInfo.setParameter("P12_CERT", readerPfx.result);
+						}
+						readerPfx.readAsArrayBuffer(file);
+					} else {
+						INI_HANDLE.infoMessage( _ini.msgFactory.getMessageFactory().Warn.WARN_1051 ); //"PKCS#12 인증서 파일이 아닙니다."
+					}
+				}
+			}
+			  
+			requirejs("jquery")(document).ready(function() {
+				// 버튼
+				requirejs("jquery")("#INI_secondClose").val(_ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_003);
+				// 탐색기
+				requirejs("jquery")('#INI_certp12_searchBtn').click(function(){
+					requirejs("jquery")('#INI_certp12_findfiles').click();
+					return false;
+				});
+				requirejs("jquery")('#INI_certp12_findfiles_text').click(function(){
+					requirejs("jquery")('#INI_certp12_findfiles').click();
+					return false;
+				});
+				requirejs("jquery")('#INI_cert_searchBtn').click(function(){
+					requirejs("jquery")('#INI_cert_findfiles').click();
+					return false;
+				});
+				requirejs("jquery")('#INI_cert_findfiles_text').click(function(){
+					requirejs("jquery")('#INI_cert_findfiles').click();
+					return false;
+				});
+				requirejs("jquery")('#INI_privateKey_searchBtn').click(function(){
+					requirejs("jquery")('#INI_privateKey_findfiles').click();
+					return false;
+				});
+				requirejs("jquery")('#INI_privateKey_findfiles_text').click(function(){
+					requirejs("jquery")('#INI_privateKey_findfiles').click();
+					return false;
+				});
+				
+				requirejs("jquery")(function() {
+				    requirejs("jquery")("[name=certificate_user_select]").click(function(){
+						requirejs("jquery")('.toHide').hide();
+						requirejs("jquery")("#sel_area_"+requirejs("jquery")(this).val()).show();
+				    });
+				});
+				
+				requirejs("jquery")('#INI_cert_search_next_btn').click(function(){
+					
+					if(_handleInfo.serviceInfo.getParameter("SAVE_TYPE")){
+						if(_handleInfo.serviceInfo.getParameter("SAVE_TYPE") === "der"){
+							if((_handleInfo.serviceInfo.getParameter("DER_CERT")) && (_handleInfo.serviceInfo.getParameter("DER_PRIVATEKEY"))){
+								_ini.MobileForm.MobileSubForm(_ini.constants.WebForm.FormId.SubForm.CertSaveDetailForm
+										, _handleInfo
+										,"INI_ModalDialog_04");
+								requirejs("jquery")('.direct_search_form').hide();
+							} else {
+								INI_HANDLE.infoMessage( _ini.msgFactory.getMessageFactory().Warn.WARN_1052 ); //'인증서 및 개인키 파일을 선택해 주세요'
+							}
+						} else {
+							if(_handleInfo.serviceInfo.getParameter("P12_CERT")){
+								_ini.MobileForm.MobileSubForm(
+											_ini.constants.WebForm.FormId.SubForm.CertSaveDetailForm
+											, _handleInfo
+											, "INI_ModalDialog_04");
+								requirejs("jquery")('.direct_search_form').hide();
+							} else {
+								INI_HANDLE.infoMessage(_ini.msgFactory.getMessageFactory().Warn.WARN_1053 ); //'p12파일을 선택해 주세요'
+							}
+						}
+					} else {
+						INI_HANDLE.infoMessage(_ini.msgFactory.getMessageFactory().Warn.WARN_1054 ); //'찾기를 진행 할 인증서 파일을 선택해 주세요.'
+					}
+					return false;
+				});
+
+    			requirejs("jquery")("#INI_SIMPLE_SEARCH_ICON_IMG").attr("src", GINI_HTML5_BASE_PATH + "/res/img/mobile/common/dum_srh_icon.png");
+				requirejs("jquery")(".prev").html('<img src="' + GINI_HTML5_BASE_PATH + '/res/img/mobile/common/dum_btn_prev.png" alt="'+_ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_003+'" />');				
+				requirejs("jquery")('.prev').click(function(){
+					requirejs("jquery")("#INI_ModalDialog_03").dialog('close');
+				});
+				requirejs("jquery")("#INI_search_manaul_cancel").click(function(){
+					requirejs("jquery")("#INI_ModalDialog_03").dialog('close');
+				});
+
+				/* 메세지 처리 공통 처리 */
+				requirejs("jquery")(".msg_direct").text(			_ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_SEARCH().W_T_C_S_002 );		// 직접 찾기
+				requirejs("jquery")("#msg_cert_search_title").html(	_ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_SEARCH().W_T_C_S_022 );		// 프로그램 화면에 표시된 인증번호를<br> 입력하시고, 다음 버튼을 터치 해 주세요.
+				requirejs("jquery")("#msg_cert_choice").text(			_ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_SEARCH().W_T_C_S_016 );		// 인증서 선택
+				
+				requirejs("jquery")("#INI_certp12_findfiles_text").attr( "placeholder",	_ini.msgFactory.getMessageFactory().Warn.WARN_1053 );							//p12인증서를 선택해주세요. 
+				requirejs("jquery")("#INI_certp12_searchBtn").text(		_ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_018 );							// 찾기
+				requirejs("jquery")(".msg_add_btn").text(					_ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_019 );							// 추가
+
+				requirejs("jquery")("#INI_cert_findfiles_text").attr( "placeholder",	_ini.msgFactory.getMessageFactory().WebForm().PLACEHOLDER().W_PHR_001);				// 인증서 선택
+				requirejs("jquery")("#INI_privateKey_findfiles_text").attr( "placeholder",	_ini.msgFactory.getMessageFactory().WebForm().PLACEHOLDER().W_PHR_002);		// 개인키 선택
+				requirejs("jquery")("#INI_search_manaul_cancel").text( _ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_002  );			// 취소
+				requirejs("jquery")("#INI_cert_search_next_btn").text( _ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_020 );			// 다음
+				
+				requirejs("jquery")("#msg_noti1").html( _ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_SEARCH().W_T_C_S_020 );		//PC에서 신한은행 홈페이지에 접속하여 메인 화면의 <em>‘금융 서비스 → 모바일’ 페이지에서 ‘스마트폰 → PC 인증서 복사’</em> 버튼을 선택하시기 바랍니다.
+				requirejs("jquery")("#msg_noti2").html( _ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_SEARCH().W_T_C_S_021 );		//ePC에 복사할 인증서 암호를 입력 후 위의 <em>인증번호 8자리를 입력</em>하시고 다음 버튼을 선택하시기 바랍니다.
+// 				requirejs("jquery")("#msg_noti3").html( _ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_SEARCH().W_T_C_S_022 );		//스마트폰에서 PC로 인증서 복사 완료 시 <em>스마트폰 및 PC에서 완료 안내를 확인</em>하시기 바랍니다.
+				/* 메세지 처리 공통 처리 */
+				
+				// 초기화
+				initialize();
+			});
+		});
+	</script>
+
+</head>
+
+<body>
+
+    <div class="m-initech-certificate-wrap" id="m-initech-certificate-wrap">
+        <header class="sticky">
+            <div class="inner-wrap">
+                <h1 class="msg_direct" ></h1>
+                <a href="javascript:void(null);return false;" class="prev"></a>
+            </div>
+        </header>
+        <section class="m-ini-cert-cont">
+            <div class="inner-wrap">
+                <!-- 인증서 찾기 -->
+                <div class="m-ini-search">
+                    <p id="msg_cert_search_title"></p>
+                    <span class="icon direct"><img id="INI_SIMPLE_SEARCH_ICON_IMG" alt=""></span>
+					<h2 class="sect-title" id="msg_cert_choice"></h2>
+                    <div class="input-wrap">
+                        <div class="table search_manaul" style="padding: 0px;">
+                            <span><input type="text" id="INI_certp12_findfiles_text" readonly="readonly"></span>
+                            <span>
+                            	<a href="javascript:void(null);return false;" class="btn" id="INI_certp12_searchBtn"></a>
+                            	<input type="file" id="INI_certp12_findfiles" style="display: none;" name="files[]" multiple/>
+                           	</span>
+                        </div>
+                    </div>
+                    <!-- 인증서,개인키 -->
+					<div id="sel_area_file" class="toHide" style="display: none;">
+				        <ul>
+				            <li class="select_form"><input type="text" id="INI_cert_findfiles_text" readonly="readonly"/></li>
+				            <li class="add_btn"><input type="file" id="INI_cert_findfiles" style="display: none;" name="files[]" multiple/><button id="INI_cert_searchBtn" class="msg_add_btn"></button></li>
+				        </ul>
+				        <ul>
+				            <li class="select_form"><input type="text" id="INI_privateKey_findfiles_text" readonly="readonly"/></li>
+				            <li class="add_btn"><input type="file" id="INI_privateKey_findfiles" style="display: none;" name="INI_privateKey_findfiles" multiple/><button id="INI_privateKey_searchBtn" class="msg_add_btn"></button></li>
+				        </ul>
+					</div>
+                    
+
+                </div>
+                <!-- // 인증서 찾기 -->
+                
+                <!-- 버튼 영역 -->
+                <!-- TODO message 입력 여기까지 -->
+                <div class="m-ini-mcert-btns">
+                    <span id="INI_BACK_BTN"><a href="javascript:void(null);return false;" id="INI_search_manaul_cancel"></a></span>
+                    <span>&nbsp;</span>
+                    <span><a href="javascript:void(null);return false;" class="emp" id="INI_cert_search_next_btn"></a></span>
+                </div>
+                <!-- // 버튼 영역 -->
+                <!-- 안내사항 -->
+                <ul class="panel notice">
+                    <li id="msg_noti1"><i class="num" >1</i></li>
+                    <li id="msg_noti2"><i class="num">2</i></li>
+<!--                     <li id="msg_noti3"><i class="num">3</i></li> -->
+                </ul>
+                <!-- // 안내사항 -->
+            </div>
+        </section> <!-- // .cert-contents -->
+    </div> <!-- // .m-initech-certificate-wrap -->
+    
+</body>
+</html>

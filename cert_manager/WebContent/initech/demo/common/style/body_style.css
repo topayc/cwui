@@ -1,0 +1,134 @@
+@charset "utf-8";
+
+@media print {
+	#header,#lnb,#snb,#footer {
+		display: none
+	}
+}
+
+/* Base styling (reset) */
+#html,body {
+	height: 100%;
+	margin: 0;
+	padding: 0;
+/* 	overflow-x:hidden; */
+}
+
+html,body {
+	height: 97%;
+	margin: 0;
+	padding: 0;
+	background-color: #f3f4f5;
+}
+
+* {
+	margin: 0;
+	padding: 0;
+	font-family: Dotum, Arial, Verdana, sans-serif;
+	font-size: 12px;
+	color: #666;
+}
+
+
+/* link */
+a:link,a:visited,a:active {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:active {
+	text-decoration: none;
+}
+
+img {
+	border: 0 none;
+	vertical-align: top;
+}
+
+fieldset {
+	border: 0 none;
+}
+
+em,address {
+	font-style: normal;
+}
+
+strong {
+	font-weight: bold;
+	color: #06F;
+}
+
+ul,ol,li {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+/* 	background-image: url(../image/lnblistbg_o.jpg); */
+}
+
+li.last {
+	border: none;
+	background: none;
+}
+
+caption {
+	display: none;
+}
+
+select {
+	padding: 1px;
+	border: solid 1px #9ca3a9;
+}
+
+/* link */
+a:link,a:visited,a:active {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:active {
+	text-decoration: none;
+}
+
+#left {
+	margin: 0 0 0 10px;
+}
+
+.contentbox {
+	display: block;
+	background-color: #FFFFFF;
+}
+
+.guide_txt {
+	color: #06F;
+	text-align: center;
+	margin: 10px 0 10px 0;
+}
+
+.alert {
+	color: #ff5a00;
+	background: url(../img/icon/ico_alert.gif) no-repeat 4px 0px;
+	padding-left: 22px;
+}
+
+blue {
+	color: #0979d0;
+	font-weight: bold;
+}
+
+/* left */
+.snbbox {float:left; display:block;width:180px;background:#fff;}
+.snbbox .top {float:left;width:180px;height:6px;background:url(../image/main/bg_leftTop.png) no-repeat;}
+.snbbox .bottom {float:left;width:180px;height:6px;background:url(../image/main/bg_leftBottom.png) no-repeat;}
+.snbbox .snb {float:left;width:180px;background:url(../image/main/bg_leftMiddle.png) repeat-y;}
+.snbbox .snb li {padding:6px 4px 6px 14px; border-bottom:1px solid #d3d3d3;}
+.snbbox .snb li a {color:#666;}
+.snbbox .snb li a:hover {color:#000;text-decoration:none;}
+.snbbox .snb li:last-child {border-bottom:none;}
+.snbbox .snb li.on {background-color:#0979d0;}
+.snbbox .snb li.on a{color:#fff;}

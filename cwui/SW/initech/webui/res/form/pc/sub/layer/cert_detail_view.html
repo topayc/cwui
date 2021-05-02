@@ -1,0 +1,49 @@
+﻿﻿<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+    <script type="text/javascript">
+    require([GINI_MANIFEST["cwui.js"]], function(_ini) {
+	    requirejs("jquery")(document).ready(function () {
+	    	var _handleInfo = requirejs("jquery")("#INI_change_area").data("GINI_handleInfo");
+	    	_handleInfo.optionInfo.setParameter("CERT_VIEW_TYPE", _ini.constants.Certs.CERTIFICATE_DETAIL_ATTR);
+			_handleInfo.serviceInfo.setCallback(_ini.WebForm.drawCertDetail);
+			_ini.Certs.getCertAttributeInfo(_handleInfo);
+
+			// ------------------- 메세지 처리 Start -------------------------------------------------------------------------------------------------------- //
+			// --------------------------------------------------------------------------------------------------------------------------------------------- //
+			// 인증서 보기
+			requirejs("jquery")("#INI_cert_second_modal_title").text(_ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_DETAIL().W_T_C_D_001);
+			// 이전
+			requirejs("jquery")("#INI_secondClose").text(_ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_003);
+			// ------------------- 메세지 처리   End -------------------------------------------------------------------------------------------------------- //
+			// --------------------------------------------------------------------------------------------------------------------------------------------- //
+			
+			requirejs("jquery")('#INI_secondClose').click(function(){
+				// 뒤로가기 (목록)
+				_handleInfo.serviceInfo.setParameter("CERT_ID", undefined);
+    			_ini.StorageManage.setFocusStorage(_handleInfo.serviceInfo.getDeviceId());
+    			_ini.StorageManage.storageClick(_handleInfo);
+			});
+			 
+	    });
+    });
+    </script>
+</head>
+
+
+<body>
+    <!--인증서정보-->
+	<div class="certificate_view_area">
+		<h2 class="section_title" id="INI_cert_second_modal_title"></h2>
+		<dl class="info_data" id="INI_cert_detail_list">
+		</dl>
+	</div>
+	
+	 <!-- 버튼 영역 -->
+     <div class="confirm_btn_area">
+         <button type="button" class="cancel" id="INI_secondClose"></button>
+     </div>
+     <!-- //버튼 영역 -->
+</body>
+</html>

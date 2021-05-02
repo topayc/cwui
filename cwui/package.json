@@ -1,0 +1,24 @@
+{
+  "name": "cwui",
+  "version": "1.0.0",
+  "description": "",
+  "main": "webpack.config.dev.js",
+  "dependencies": {},
+  "devDependencies": {
+    "selenium-webdriver": "^3.5.0",
+    "fs-extra": "^4.0.1",
+    "html-webpack-plugin": "^2.30.1",
+    "jquery": "^3.2.1",
+    "text-loader": "0.0.1",
+    "webpack": "^3.4.1",
+    "webpack-dev-server": "^2.6.1",
+    "webpack-manifest-plugin": "^1.2.1"
+  },
+  "scripts": {
+    "test": "node seleniumAutomation/test",
+    "start": "webpack-dev-server --config webpack.config.dev.js --define process.env.NODE_ENV='develop'",
+    "build": "webpack --config webpack.config.dev.js"
+  },
+  "author": "initech",
+  "license": "ISC"
+}

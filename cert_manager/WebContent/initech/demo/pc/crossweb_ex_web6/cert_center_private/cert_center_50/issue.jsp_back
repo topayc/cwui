@@ -1,0 +1,200 @@
+<%@ page language="java" contentType="text/html; charset=EUC-KR" pageEncoding="EUC-KR"%>
+<%@ page import="com.initech.x509.X509CertImpl"%>
+<%@ page import="com.initech.inira.client.sdk.CertSearchHandler"%>
+<%@ page import="com.initech.inira.client.sdk.RegistHandler"%>
+<%@ page import="com.initech.inira.common.Credential"%>
+<%@ page import="com.initech.center.RASession"%>
+<%@ page import="com.initech.inira.client.sdk.RAClientManager"%>
+<%@ page import="java.util.Hashtable"%>
+<%
+	String groupName = null;
+	String userID = null;
+	String profile = null;
+	String user_dn = null;
+
+	String entityType = null;
+	String entityName = null;
+
+	Hashtable userInfo = new Hashtable();
+	Hashtable entityInfo = new Hashtable();
+
+	X509CertImpl[] ci = null;
+	String auth_code = null;
+	String ref_num = null;
+
+	groupName = request.getParameter("group");
+	userID = request.getParameter("user_id");
+	profile = request.getParameter("profile");
+
+	entityType = request.getParameter("entity_type");
+	entityName = userID;
+	session.setAttribute("m_ID", userID);
+
+	user_dn = "cn=" + userID + ", o=initech, c=kr";
+	
+	System.out.println("############# : " + user_dn);
+
+	entityInfo.put("overrided-dn", user_dn);
+
+    userInfo.put("entity-type", entityType);
+    userInfo.put("entity-name", entityName);
+    userInfo.put("entity-info", entityInfo);
+    userInfo.put("description", "Description");
+
+    String m_file_name ="regist";
+
+
+	RAClientManager racm = null;
+	RASession rasession = null;
+
+	try {
+		rasession = RASession.getInstance("/home/demoserv/html5_system/setting/properties/ra/rasession.properties");
+		racm = rasession.getRAClientManager();
+
+		if(  racm != null ) {
+			CertSearchHandler csh = racm.getSearchHandler();
+			ci = csh.getCertificates(groupName, userID, profile);
+
+			if( ci.length != 0 ) {
+				out.print("<script>alert('재발급 해야 함');</script>");
+				return;
+			}
+
+			if( m_file_name.equals("regist") ) {
+				RegistHandler rh = racm.getRegistHandler();
+
+				Credential cred = rh.regist(groupName, userID, profile, userInfo);
+				auth_code = new String(cred.getAuthCode());
+				ref_num = cred.getRefNumber();
+			}
+		}
+	} catch(Exception e) {
+		e.printStackTrace();
+	} finally {
+		rasession.closeClientManager(racm);
+	}
+
+
+//	String callback = request.getParameter("jsoncallback");
+
+//	out.print(callback + "({\"refNum\": \"" + ref_num + "\", \"authCode\": \"" + auth_code + "\"})");
+//	System.out.print(callback + "({\"refNum\": \"" + ref_num + "\", \"authCode\": \"" + auth_code + "\"})");
+	
+	
+
+//	String ref_num = request.getParameter("refNum");
+//	String auth_code = request.getParameter("authCode");
+
+	session.setAttribute("IssueRefID", ref_num);
+	session.setAttribute("IssuePassword", auth_code);
+/*
+	String ref_num = request.getParameter("refNum");
+	String auth_code = request.getParameter("authCode");
+
+	session.setAttribute("IssueRefID", ref_num);
+	session.setAttribute("IssuePassword", auth_code);
+*/
+%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=EUC-KR">
+<link href="/common/style/body_style.css" rel="stylesheet" type="text/css"></link>
+<link href="/common/style/table_style.css" rel="stylesheet" type="text/css"></link>
+<link href="/common/style/text_style.css" rel="stylesheet" type="text/css"></link>
+<link href="/common/style/form_style.css" rel="stylesheet" type="text/css"></link>
+
+<script src="/initech/common/common.js"></script>
+<script src="/common/script/jquery-1.11.1.js"></script>
+<script src="/common/script/jquery.mobile-1.1.0-rc.1.min.js"></script>
+<script language="javascript" src="/demo/pc/moasign/script/moasign.js"></script>
+<script language="javascript">
+	function certIssue(form){
+		try{
+			moa_issue( "issue50" , form, certIssue_callback );
+			return false;
+		} catch(e) {
+			if(typeof(e) == "object")
+				alert(e.description);
+			else
+				alert(e);
+				
+			return false;
+		}
+	}
+
+	function certIssue_callback(retcode) {
+		if(retcode != null && retcode != "" && retcode == "1" ){	// 성공
+			alert('발급성공');
+		} else if(retcode == "2") {
+			alert('발글실패');
+		} else if(retcode == "3") {	// 취소
+			alert('취소');
+		} else {
+			alert('알 수 없는 오류가 발생했습니다.');
+		}
+	}
+</script>
+</head>
+<body>
+<body bgcolor="#f3f4f5">
+<div id=test_bed>
+
+	<table border="0" width="800px">
+		<tr><td align="right">
+			<span id="menu_situation">PC Demo > INISAFE MoaSign S > 사설인증센터 예제 > 인증서 발급/재발급 결과</span>
+		</td></tr>
+	</table>
+	
+	<jsp:include page="./test_menu.html" />
+	
+	<h1>설명</h1>
+	<div class="desc" style="width:800px;">
+		<h3>INISAFE MoaSign 사설인증센터 테스트를 할 수 있습니다.</h3>
+		<h3>데모 페이지는 개발 및 테스트, 데모용으로만 사용하셔야 합니다.</h3>
+		<h3>현재주소 : <%= request.getRequestURL() %></h3>
+	</div>
+	<br>
+		<h1>인증서 발급 정보</h1>
+		<div class="result" style="width:800px;">
+		<table border=0>
+		<tr>
+			<td width="20px" rowspan="2"></td>
+			<td width="750px">
+			<!-- 입력 시작  -->
+				<table class="basic_table" style="width:100%;">
+	            <colgroup>
+	                <col width="30%" />
+	                <col width="70%" />
+	            </colgroup>            
+	            <tr>
+	                <th>항목</th>
+	                <th>내용</th>
+	            </tr>
+	            <tr>
+	                <td align="center"><b>참조번호</b></td>
+	                <td><%=ref_num%></td>
+	            </tr>
+	            <tr>
+	                <td align="center"><b>인가코드</b></td>
+	                <td><%=auth_code%></td>
+	            </tr>
+	        	</table>
+        	</td>
+        </tr>
+		</table>
+		<form action="" method="post" name="issueForm" OnSubmit="return certIssue(this);">
+			<input type="hidden" name="moa_securedata" id="moa_securedata" value="">
+			<table border=0 width="100%">
+			<tr>
+				<td align="right" id="issue_btn">
+					<input type="submit" id="submitBtn" name="submitBtn" class="button blue medium" value="인증서 발급">
+				</td>
+			</tr>
+			</table>
+		</form>
+	</div>
+</div>
+</body>
+
+</html>

@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <title>cmp test</title>
+    <script type="text/javascript" src="./forge.js"></script>
+    <script type="text/javascript" src="./cipherModes.js"></script>
+    <script type="text/javascript" src="./cipher.js"></script>
+    <script type="text/javascript" src="./debug.js"></script>
+    <script type="text/javascript" src="./util.js"></script>
+    <script type="text/javascript" src="./log.js"></script>
+    <script type="text/javascript" src="./task.js"></script>
+    <script type="text/javascript" src="./md5.js"></script>
+    <script type="text/javascript" src="./sha1.js"></script>
+    <script type="text/javascript" src="./sha256.js"></script>
+    <script type="text/javascript" src="./hmac.js"></script>
+    <script type="text/javascript" src="./aes.js"></script>
+    <script type="text/javascript" src="./pem.js"></script>
+    <script type="text/javascript" src="./asn1.js"></script>
+    <script type="text/javascript" src="./jsbn.js"></script>
+    <script type="text/javascript" src="./prng.js"></script>
+    <script type="text/javascript" src="./random.js"></script>
+    <script type="text/javascript" src="./oids.js"></script>
+    <script type="text/javascript" src="./rsa.js"></script>
+    <script type="text/javascript" src="./pbe.js"></script>
+    <script type="text/javascript" src="./x509.js"></script>
+    <script type="text/javascript" src="./pki.js"></script>
+    <script type="text/javascript" src="./tls.js"></script>
+    <script type="text/javascript" src="./aesCipherSuites.js"></script>
+    <script type="text/javascript" src="./pkcs7.js"></script>
+    <script type="text/javascript" src="./pkcs7asn1.js"></script>
+    <script type="text/javascript" src="./cmp.js"></script>
+    <script type="text/javascript" src="./des.js"></script>
+    <script type="text/javascript" src="./desmac.js"></script>
+    <script type="text/javascript" src="./seed.js"></script>
+    <script type="text/javascript" src="./pbkdf1.js"></script>
+    <script type="text/javascript">
+/*
+    전자인증 아래 발급 받은 인증서..
+    유효기간 : 2016.05.30 20:00:00 ~ 2017.05.30 23:59:59
+    unixdev@V490 ~/BIN/OPPRA/tools>./IssueCert 03 01
+    Configuration Load : [OK]
+    영문사용자명을 입력 [N01216]:
+    사용자 ID 입력 [ini201216]:
+    주민등록번호/사업자번호 입력 [7000000001216]:
+    ----------------------------------------
+    RA 요청 전문 (Header)      : [20201605301958330001]
+    RA 요청 전문길이 (body)    : [0204]
+    RA 요청 전문     (body)    : [InitechAdmin$1$$테스트(N01216)$7000000001216$ini201216$01$03$01$ini201216@initech.com$$$138-130$서울시 송파구 거여동 이니텍빌딩$000-0000-0000$138-140$서울시 구로구 구로동 에이스하이엔드타워$111-1111-1111$]
+
+    ----------------------------------------
+    RA 응답 전문(Header)       : [21201605301958370001]
+    RA 응답 전문 길이 (body-0) : [0073]
+    RA 응답 전문(body-0)       : [000$정상 처리되었습니다.$58079$4486112920232038782$20160530195834$000041$]
+    ---------------------------------------
+    참조번호 : 58079
+    인가코드 : 4486112920232038782
+    unixdev@V490 ~/BIN/OPPRA/tools>
+    unixdev@V490 ~/BIN/OPPRA/tools>./ReNewCert  03 01
+    Configuration Load : [OK]
+    영문사용자명을 입력 [N17571]: N01216
+    사용자 ID 입력 [ini217571]: ini201216
+    주민등록번호/사업자번호 입력 [7000000017571]: 7000000001216
+    ----------------------------------------
+    RA 요청 전문 (Header)      : [28201605302000200001]
+    RA 요청 전문길이 (body)    : [0143]
+    RA 요청 전문     (body)    : [InitechAdmin$1$$(테스트(N01216)$7000000001216$ini201216$01$03$01$ini201216@initech.com$$$138-130$서울시 송파구 거여동 이니텍빌딩$000-0000-0000$]
+    ----------------------------------------
+    RA 응답 전문(Header)       : [29201605302000330001]
+    RA 응답 전문 길이 (body-0) : [0079]
+    RA 응답 전문(body-0)       : [921$가입자 갱신등록은[90]일 전부터 허용됩니다.$000$정상처리되었습니다.$ $ $ $ $]
+    -----BEGIN CERTIFICATE-----
+    MIIF0TCCBLmgAwIBAgIEAQAKOTANBgkqhkiG9w0BAQsFADBTMQswCQYDVQQGEwJL
+    UjESMBAGA1UECgwJQ3Jvc3NDZXJ0MRUwEwYDVQQLDAxBY2NyZWRpdGVkQ0ExGTAX
+    BgNVBAMMEENyb3NzQ2VydFRlc3RDQTQwHhcNMTYwNTMwMTEwMDAwWhcNMTcwNTMw
+    MTQ1OTU5WjB6MQswCQYDVQQGEwJLUjESMBAGA1UECgwJQ3Jvc3NDZXJ0MREwDwYD
+    VQQLDAhwZXJzb25hbDEQMA4GA1UECwwHSU5JVEVDSDEyMDAGA1UEAwwp7YWM7Iqk
+    7Yq4KE4wMTIxNikwMDkxMDEwMjAxNjA1MzAzOTEwMDAwMjYwggEiMA0GCSqGSIb3
+    DQEBAQUAA4IBDwAwggEKAoIBAQCuHtgpkDBsbnigt1Yz8dqNCZ3x5JH8vDxi9r3U
+    nHM3IOD1ZziSdjnXF0yIn1yz9XCSL5KO0DobFV1esF+yN8uz/qpuEnxIYCweY/wG
+    u7p0/kUjI8KIP90K9c5Y0yAJBrb5IeyuYEeAr2rVy+xINbWt3PdOAYkHjuBmE2r6
+    kh0S+2m87XU4CqkEvaD4F3ERwp0UjKVvkpkOUeiuv7tewRhnNR5824yMAKvYuadr
+    vL5PntRgRfBD8MiOpwZ1cG8lEdOMqL0/+RwIv2TdhObJuXqh+mMJiDpmNJ5viCAs
+    eIFJlPvVrrd2Nh+y1W0GiDEe/C0A0AmKbcpvBOl/34CWCnPBAgMBAAGjggKEMIIC
+    gDCBkwYDVR0jBIGLMIGIgBSpHSjyq/94gLLPjNhQvqzPIG4o/KFtpGswaTELMAkG
+    A1UEBhMCS1IxDTALBgNVBAoMBEtJU0ExLjAsBgNVBAsMJUtvcmVhIENlcnRpZmlj
+    YXRpb24gQXV0aG9yaXR5IENlbnRyYWwxGzAZBgNVBAMMEktpc2EgVGVzdCBSb290
+    Q0EgNoIBAjAdBgNVHQ4EFgQUkwvT2WwlsD7++vM7GTdsUDoJQqwwDgYDVR0PAQH/
+    BAQDAgbAMH8GA1UdIAEB/wR1MHMwcQYKKoMajJpEBQQBATBjMC0GCCsGAQUFBwIB
+    FiFodHRwOi8vZ2NhLmNyb3NzY2VydC5jb20vY3BzLmh0bWwwMgYIKwYBBQUHAgIw
+    Jh4kx3QAIMd4yZ3BHLKUACDRTMKk0rgAIMd4yZ3BHMeFssiy5AAuMGgGA1UdEQRh
+    MF+gXQYJKoMajJpECgEBoFAwTgwJ7YWM7Iqk7Yq4MEEwPwYKKoMajJpECgEBATAx
+    MAsGCWCGSAFlAwQCAaAiBCCvm526I1ilprYXlWv8Z4VsfXRVl4nU7RxvL18ZFXz+
+    kzCBgQYDVR0fBHoweDB2oHSgcoZwbGRhcDovL3Rlc3RkaXIuY3Jvc3NjZXJ0LmNv
+    bTozODkvY249czFkcDExcDEsb3U9Y3JsZHAsb3U9QWNjcmVkaXRlZENBLG89Q3Jv
+    c3NDZXJ0LGM9S1I/Y2VydGlmaWNhdGVSZXZvY2F0aW9uTGlzdDBKBggrBgEFBQcB
+    AQQ+MDwwOgYIKwYBBQUHMAGGLmh0dHA6Ly90ZXN0b2NzcC5jcm9zc2NlcnQuY29t
+    OjE0MjAzL09DU1BTZXJ2ZXIwDQYJKoZIhvcNAQELBQADggEBAJw5dihgIwVIVOVJ
+    QALP/rGBahr7KZR+KpiIyVYw0uvODrcvIn2Ia47BWWuBPZgRyNiHrkChPFOPakmk
+    n4j6+jHPgXGfcDpKUQUkkhKzLj3m078zzEoLCcnJ9GiopweDZ3F/cv5y6S0Mrbek
+    SzAm13L/ItdkgqWoB/Y6H9v/g9RuvNRcvDU3U+NxYolGXORrx5NziyuduaYUK/DV
+    gON8nj3RJbqZ2T01Q8y4f2TgVh1DRgR96f7FYjxY4t1cxfIYGmZPs0yqFgc+1Dc6
+    PRa7AalnMeUHhhe/azBHDfXDEJxX4OSo2+uYS8BUTlGhZK0zOeBV5EVQNtybTehO
+    P+cHwZ4=
+    -----END CERTIFICATE-----
+    -----BEGIN ENCRYPTED PRIVATE KEY-----
+    MIIFEDAaBggqgxqMmkQBDzAOBAgG0YA4e+epSgICCAAEggTw+qaU/ypTrY7nOSUI
+    O7WOoCQ5qKU/DgdXj2/hVS4mOG3pqv9nds/btzG1W7opsG0tkGuxuo9uirMyy35s
+    32/kYtUqvY2xdpRY2doybsNHBEwOnDP+H+o1iuS7OkbJPDTbhzy3CvdRIpaOhsx3
+    XQ8xt03KwqR8IU3ePa+5g2PL+qxH3yGqjvc6dVO9sT36ghRShv1HleiNkRQgWFIz
+    uhvJYcwmgLDeL5xwjZgONcJVB/+hKEnABBtRWPgP0YEXGx9BNIB6fGJKDMMtCeyE
+    NIfxGZLXtpekjohZAf09+wx+uUCxZ2hqIma+sieRX2kMVJC6h/SznS1NNHoVsBcf
+    pKNZH3sFoIUJeMZmbK9Ows+ltSB5xRdI5uJoK6Svam9uyWKkj7588R159QqI3CI1
+    CYwuCefJqfp0a73tAg0OScZ6iHMGeJQ0w/zRPPkctBIJzxQZY0zA8g3RNdGiBWd/
+    0MdrnKyMhDwL71LEEhSe8jH+LqPWoMPkz3omkvVmlVszd5wanvh2FNWMds4aQg+9
+    7ovaHpMWTK6+vCred0wkGSlbQ4XvCKBobQw/cloJFtv/yg+gU8goGHGT1W72+KY5
+    dznZtjaX7wbttHmM6WlidLhwGZoEMJsYXv/fYlHEKhmkYRW+BvBGxz/hyled/rJ6
+    HvLLvo3RU8LbyBBs9p5muL8F7AYSN23J57LSOGfoWcuE9unsD4UrUU+/CfsPo46K
+    Z0/82oGYI3KZoJfQ8fE/39xoEwZx8hzAX2UUHqncnM6yPvVGq+CFtii7YDwSmd22
+    EYjUdUtbpGad90fDPHZ4HYJeb6kkmRneO5X2QLQENSQCf2e7iM1a2Ru0nQRAsziC
+    CafcJ1peJSORnql8MmPBxJL4T0DCEc3uxBMoA451GF1UkItvlkQDUWUeQtF+M418
+    lZHgQVSrgnubF80djm0Kg/8zGhDhFQzKwvFYf8zKIv7KB0QPozQBVvygMxpEiQTz
+    fn+u/0G+SKaniVhi7irsXsa122ZEH4p8V6HRi/Jh0tLBDEUCVm5gNTAcDFtxcgXm
+    J9QnXdV1gtTpX7SqIKBIWZa/AUYBcfArYZh7f0yfwSHfFDrUvO4H0FlXpBwDLHn4
+    ck3obzFu5e7F0wJ3QEz+y/CLEHhR5zDKU4Kl4fRG3mRYVhzmIZojhEKwGJQET0r+
+    PYI0kDjoOSrfjL9clA9XdYWpTDvjUBqKvJ24dHygIDUfe1IAqWrRf71bltJsYa7R
+    WmfWWDsdlyrWfgCZZwMdhCpLQD5pjaarfh5m+2ZqCAXG2GZ9ECuqipcbtR1MahEj
+    PsO6rHHLg6o66B/+PUfVVchVljIhDeMYTBgzCYtosR9n6VXnqLzDVX/f0mCU8h+1
+    z/T5xNDydkSvaFIXQPu3FiwChtWsWJcCW49X27LM8nPeGchz5zuwtGAzVVrWx5UT
+    3ETD2Y+Th+i7BP5mHQ7oZubf9V90mYDFav30190fBwJqWdAbC8SaZgfd5UZ5LDB9
+    rYSP3C6urWuhCmrSvZFp9exxVvAxkZJtHWWmFCW4xYTy+aGb3Odd34AypE2tQhnE
+    h7380QwbFW23JiTjQmxEc35SIKopziZ8aqEdLI/hgGn72zYpcn/g7QRnBJrHkeyv
+    1gxSEU0nZSnLg1ojvtqfS1iANT0iHcF885wVLsEoXrpfLPaQahU5jPBf5KsHoWsJ
+    5aY85Q==
+    -----END ENCRYPTED PRIVATE KEY-----
+    */
+
+/*
+ unixdev@V490 ~/BIN/OPPRA/tools>./IssueCert 05 01
+ Configuration Load : [OK]
+ 영문사용자명을 입력 [N25632]:
+ 사용자 ID 입력 [ini225632]:
+ 주민등록번호/사업자번호 입력 [7000000025632]:
+ ----------------------------------------
+ RA 요청 전문 (Header)      : [20201605302003320001]
+ RA 요청 전문길이 (body)    : [0204]
+ RA 요청 전문     (body)    : [InitechAdmin$1$$테스트(N25632)$7000000025632$ini225632$01$05$01$ini225632@initech.com$$$138-130$서울시 송파구 거여동 이니텍빌딩$000-0000-0000$138-140$서울시 구로구 구로동 에이스하이엔드타워$111-1111-1111$]
+ ----------------------------------------
+ RA 응답 전문(Header)       : [21201605302003340001]
+ RA 응답 전문 길이 (body-0) : [0073]
+ RA 응답 전문(body-0)       : [000$정상 처리되었습니다.$22040$214A678371U2335127q$20160530200333$000043$]
+ ---------------------------------------
+ 참조번호 : 22040
+ 인가코드 : 214A678371U2335127q
+ unixdev@V490 ~/BIN/OPPRA/tools>./ReNewCert  05 01
+ Configuration Load : [OK]
+ 영문사용자명을 입력 [N06436]: N25632
+ 사용자 ID 입력 [ini206436]: ini225632
+ 주민등록번호/사업자번호 입력 [7000000006436]: 7000000025632
+ ----------------------------------------
+ RA 요청 전문 (Header)      : [28201605302007060001]
+ RA 요청 전문길이 (body)    : [0143]
+ RA 요청 전문     (body)    : [InitechAdmin$1$$(테스트(N25632)$7000000025632$ini225632$01$05$01$ini225632@initech.com$$$138-130$서울시 송파구 거여동 이니텍빌딩$000-0000-0000$]
+ ----------------------------------------
+ RA 응답 전문(Header)       : [29201605302007190001]
+ RA 응답 전문 길이 (body-0) : [0049]
+ RA 응답 전문(body-0)       : [000$정상 처리되었습니다.$$$20160530200719$000046$]
+ unixdev@V490 ~/BIN/OPPRA/tools>
+ */
+        var _pem = (function() {
+            var signCertPem = '-----BEGIN CERTIFICATE-----\r\n' +
+            'MIIFvjCCBKagAwIBAgICSwowDQYJKoZIhvcNAQELBQAwTTELMAkGA1UEBhMCS1Ix\r\n' +
+            'DTALBgNVBAoMBEtJQ0ExFTATBgNVBAsMDEFjY3JlZGl0ZWRDQTEYMBYGA1UEAwwP\r\n' +
+            'c2lnbkdBVEUgRlRDQTA0MB4XDTE2MDUzMDExMDIwMFoXDTE3MDUzMDE0NTk1OVow\r\n' +
+            'gYgxCzAJBgNVBAYTAktSMQ0wCwYDVQQKDARLSUNBMRUwEwYDVQQLDAxBY2NyZWRp\r\n' +
+            'dGVkQ0ExETAPBgNVBAsMCHBlcnNvbmFsMQwwCgYDVQQLDANITkIxMjAwBgNVBAMM\r\n' +
+            'Ke2FjOyKpO2KuChOMjU2MzIpMDA5MTAxMDIwMTYwNTMwNTkxMDAwMDI3MIIBIjAN\r\n' +
+            'BgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAosVQar3MoS1I5WZdEkCvpB7npO2T\r\n' +
+            'rwNduMIdIkrPbJhVMRlURRTodl4g6O3QUGPGs0Xmg0gEfk9GZKTrEHX5UbPO65oV\r\n' +
+            'aHPW7EiTp6Rx2zBwUMs3jJMo9VLbQIKjmm+/VwhAOtPdmZDzifSlNyEEk4wBZEUt\r\n' +
+            'y/7Vr1Xf0m8DG/vgKYMoe2tc9kZyuB/6Kp86nReX69Gt2M7seWffOy2ZpRbeWXj4\r\n' +
+            'wqpEY0SpbwtgANkrQqhXnq00JsOS7dKqW7gDgCJ19yxjE1H6r27wwzwvvJjLB9dt\r\n' +
+            'y0D6PeX3YPm4zQfDvw1Ccm59STdwu3aVMYbxiK4JhVYAHyP8JFWn8cTZVQIDAQAB\r\n' +
+            'o4ICajCCAmYwgZMGA1UdIwSBizCBiIAUWEY4q8TqJVDSGPou2tyc9vWi69WhbaRr\r\n' +
+            'MGkxCzAJBgNVBAYTAktSMQ0wCwYDVQQKDARLSVNBMS4wLAYDVQQLDCVLb3JlYSBD\r\n' +
+            'ZXJ0aWZpY2F0aW9uIEF1dGhvcml0eSBDZW50cmFsMRswGQYDVQQDDBJLaXNhIFRl\r\n' +
+            'c3QgUm9vdENBIDWCATAwHQYDVR0OBBYEFFzEufiDMv6k0d8Lh0gviDChWu35MA4G\r\n' +
+            'A1UdDwEB/wQEAwIGwDB0BgNVHSAEbTBrMGkGCSqDGoyaRAKBSTBcMCwGCCsGAQUF\r\n' +
+            'BwIBFiBodHRwOi8vd3d3LnNpZ25nYXRlLmNvbS9jcHMuaHRtbDAsBggrBgEFBQcC\r\n' +
+            'AjAgHh7HdAAgx3jJncEcspQAIKz1x3jHeMmdwRzHhbLIsuQwfwYDVR0RBHgwdoEV\r\n' +
+            'aW5pMjI1NjMyQGluaXRlY2guY29toF0GCSqDGoyaRAoBAaBQME4MCe2FjOyKpO2K\r\n' +
+            'uDBBMD8GCiqDGoyaRAoBAQEwMTALBglghkgBZQMEAgGgIgQgOZ5+JiU5Wi3oYPqX\r\n' +
+            'IAog991dOByGjwcSZrT8X26fJ0QwXgYDVR0fBFcwVTBToFGgT4ZNbGRhcDovL2Nh\r\n' +
+            'dGVzdC5zaWduZ2F0ZS5jb206Mzg5L291PWRwMnAyMCxvdT1jcmxkcCxvdT1BY2Ny\r\n' +
+            'ZWRpdGVkQ0Esbz1LSUNBLGM9S1IwSAYIKwYBBQUHAQEEPDA6MDgGCCsGAQUFBzAB\r\n' +
+            'hixodHRwOi8vb2NzcHRlc3Quc2lnbmdhdGUuY29tOjkwMjAvT0NTUFNlcnZlcjAN\r\n' +
+            'BgkqhkiG9w0BAQsFAAOCAQEAjPfiDjDFUFWbZTpCyGSoDwb25TolidagC24S5RFE\r\n' +
+            'P48vZuyvQr9YdbUcDv6li7/2RiWscF7z6wAqveTgPyoAD5wwgQxGpXDgI3RtEmfU\r\n' +
+            'VkxaCkUiR67+Ir+E9iAgJNipxPDMFcJLRUFGFTpMuuup5M7+2HoAuIE21PHIFg4x\r\n' +
+            'i91EfTehunCKJR++TdoukxSYM96QjYxoPDSop46yjNyRL3SmfVga4pNtflhbvSB1\r\n' +
+            'lOZhEjtq0Kixp6vWE+yR6DV22S/eT34HWCpNDTslfmpYL0akmyK/o8ItijqE3vVZ\r\n' +
+            'VghzI4+t91eVacJb6QMt7gbdyNSs/EjyeFQQ0nenrfBF/A==\r\n' +
+            '-----END CERTIFICATE-----\r\n';
+            var signPriPem = '-----BEGIN ENCRYPTED PRIVATE KEY-----\r\n' +
+            'MIIFEDAaBggqgxqMmkQBDzAOBAir6K8gqQKjKAICCAAEggTwcNZTR/AKihDyIFNS\r\n' +
+            'bzQ4rybSCISTGjlJWUCFssproI3+oXCPwqKwKbJu3dN+LbkHKjwm2Rwb+B/ybF5i\r\n' +
+            'C+hq8Gzskx1oqJfSCPG3+Fco1SomjwggId1fS58eF1IX26B/H4hcCptkTz22uZDx\r\n' +
+            'jnUfMB1MSCb1Nb+AoGc/lWrcTANNObjk9uS+v0IvMARBtRJyCogPptnRGft/F23I\r\n' +
+            '0sms+j+ZwG+bGdCGhdmnUmMrwyya6KYbk2Xgf4ncSd3RIs9VDqJSfX0P43GbEx++\r\n' +
+            'UWoy8rQcmmr69EjHQStjIk1BgWtRyxE4r6IoqzqI/jnP1mEiJmgecwJ9UPdZEr8d\r\n' +
+            'Vpc6RFRWml1ffnyGrPZ5AdabgI76JyQ3+gPy/8bgDZMDlthaeBJgYeAwCgJn+97C\r\n' +
+            'rS2rAjSRfNjfNvswCQaNDmkK5rf5M+FewtptTnXhxHuVVGP2+PnhbglbZ1yJ94kp\r\n' +
+            'JJXVplRvt32k1A8BjUDQEked4qs+wujB3AgG5JaKXdidgcJIVYMzsRfb40DC+GWq\r\n' +
+            'aBrwkhz4u40Ql4u6nAW+OSRUrtManWhHHX13SrnmamuNYcqO0T+dvIVtFEdxqhyI\r\n' +
+            'VpxBA7s/g8CxGSa+pQZ1CC/Zhfku7RT3MEqWVT1KnMCSTIhGuaIyN1aAi1f2I7S6\r\n' +
+            'A5FdxwPXN1pZSmOovXh/D0Wetj3A7oHAVRsaG84Xoue8W7Xxq10KQ1MFhy7KVyNE\r\n' +
+            'fTfrKkDqT8YN2Ic8qaxs0KBqPKxHIL8yTPjXQ9YvSxiKs/APomRx2jz4v4CpnHaj\r\n' +
+            'jitW+2HY23+suvedtTqG6bRDyMWDu9tgPCo98OTS4PCI8zN1KRf/DMdL+uKmvbIJ\r\n' +
+            'FlUsva9LVfUwPU0Sg0SHSXiYIshR9qN48WSO2lwxRXtRommBnmn6mKGUTCt1g7ZN\r\n' +
+            'dWoi/+QCZL0qQiYC2abcNnTR0l4nXOHpIJtbZMMD+/G5CESH16csKN7ukvkiqQyw\r\n' +
+            'bYgqZyq/qAebv6yQo7v9D/Kx1s25fKhMjWivO4/43Tob5PJ05rp53EgxVbERzMTV\r\n' +
+            'UYzm7UcLpGhBc5IXlvEQX3D7SUPh9lIyUHyIKR/Utg7X5seVxrBEqLBrTPi9x+oS\r\n' +
+            'fVgIRXRqFlbeqrXYk6VY20u4coiiBehXfxv2wNxZN/Xc3waFquZVXM32NP0s6l9o\r\n' +
+            'OZqhViNFaHFkyIertMZlCqObvATt9T7T8qW+fwuPqrGrYff8TxlakouVKbfr2BGU\r\n' +
+            'FBMpbR5o2X27oJZyiAuMeNvsixTWarwI+l5k3bfE85Le/c6D0zOHsukK2gn+M/TN\r\n' +
+            'WePzqkkbOyCxmXjczruSSPCSPinM7BD+6T49F2VJBQXwjkHu4Jpxuk1USUDwGPhu\r\n' +
+            'jwqjeAp8bSW8B551BfHJ4sfdQyGN1xyBG5yyJ+qH9hr3PThG7g2qgLL9TB2JlzQx\r\n' +
+            'dQv7BTaekI7w3wOWHtK89fsCx1wcrIt9LZ7kMUumAXa9YTXZYWlh8hAHtMtqDt2q\r\n' +
+            'FuN+9LeQyD9C+3A0CCsKeCVyv+fL0QWTrIYClu4D4XjusB9leY+1geZYzsW2+8pi\r\n' +
+            'YJ4C5iFoHjK8Y5EtzhAuH72/lekm2XlQwGTFCT/yUK6BVzS4tXm6R+LvycLD1P88\r\n' +
+            'xtI8QKIc/h99yMQbHw3V6VzBLhTcvNqAkIL4yoxOfVtctIRoZtNBwOoPQVedimDP\r\n' +
+            '56XrhQ==\r\n' +
+            '-----END ENCRYPTED PRIVATE KEY-----\r\n';
+
+            return {
+                signCertPem: signCertPem,
+                signPriPem: signPriPem
+            };
+        }());
+
+    </script>
+
+
+</head>
+<body>
+
+<script>
+    var cmp = _ini.forge.cmp;
+
+    var request_opt = {};
+
+    // 공통
+    // reqCMD : issue or reissue or renew
+    request_opt.reqCMD = "reissue";
+    request_opt.cmp_gw_url = 'http://127.0.0.1:8080/initech/html5/approve/CMP_GW.jsp';
+    request_opt.cmp_gw_url2 = 'http://127.0.0.1:8080/initech/html5/approve/CMP_GW3.jsp';
+    // 금결원
+    //request_opt.caname = 'YESSIGN';
+    //request_opt.caip = "203.233.91.231";
+    //request_opt.caport = "4512";
+
+    // 코스콤
+    //request_opt.caname = 'SIGNKOREA';
+    //request_opt.caip = "211.175.81.101";
+    //request_opt.caport = "4099";
+
+    // 한국정보인
+    request_opt.caname = 'SIGNGATE';
+    request_opt.caip = "114.108.187.156";
+    request_opt.caport = "4502";
+
+    // 한국전자인증
+    //request_opt.caname = 'CROSSCERT';
+    //request_opt.caip = "211.180.234.216";
+    //request_opt.caport = "4502";
+
+    // 발급(issue) 재발급(reissue) 인 경우
+    request_opt.refCode = "22053";
+    request_opt.authKey = "225045q571p84093336";
+    request_opt.passKey =  "1111";
+
+    /*
+     var CrossCertCAIP = "211.180.234.201";
+     var CrossCertCMPPort = "4512";
+
+     var SignKoreaCAIP = "211.175.81.101";
+     var SignKoreaCMPPort = "4099";
+
+     var SignGateCAIP = "114.108.187.156";
+     var SignGateCMPPort = "4502";
+     */
+
+    /*
+     signCert : asn1 인증서
+     signCertPem: pem 인증서
+     signCertDer : der 인증서
+     signPriPem : pem 형태의 p8 개인키
+     signPriDer : Der 형태의 p8 개인키
+     signPrivate : p1 개인키
+     vidRandom : vidRandom
+     passKey: p8 비밀번호
+
+     갱신 요청시 request_opt 가 자여야 할 elememnt 는 공통을 제외하면 갱신 대상 인증서와, 개인키 이다
+     인증서는 signCert or signCertPem or signCertDer 중에 하나가 있으면 되고
+     개인키는 ( signPriPem or signPriDer or (signPrivate and svidRandom) ) and passKey 가 필요 하다
+    */
+
+    // 갱신(renew) 테스트를 바로 진행
+    if(0){
+        request_opt.signCertPem = _pem.signCertPem;
+        request_opt.signPriPem = _pem.signPriPem;
+        request_opt.reqCMD = "renew";
+        request_opt.passKey = "1111";
+    }
+    // 발급 / 재발급
+    var issued = cmp.requestCert(request_opt);
+
+    /*
+     PKIStatus ::= INTEGER {
+     accepted               (0),
+     grantedWithMods        (1),
+     rejection              (2),
+     waiting                (3),
+     revocationWarning      (4),
+     revocationNotification (5),
+     keyUpdateWarning       (6)
+     }
+     */
+    document.write("<pre>");
+    if(issued.status == 0){
+        // 정상 발급
+
+        document.write("Issue OK" + '\n');
+        document.write(issued.status + '\n');
+        document.write(issued.statusString + '\n');
+        document.write(issued.signCertPem);
+        document.write(issued.signPriPem);
+
+        // 갱신 시도
+        request_opt.reqCMD = "renew";
+        request_opt.signCertObj = issued.signCertObj;
+        request_opt.signCert = issued.signCert;
+        request_opt.signPriPem = issued.signPriPem;
+        request_opt.passKey = issued.passKey;
+        // 아래 갱신 CMP 전에. RA 를 통해 갱신 등록 부터 진행 해야 합니다
+        issued = cmp.requestCert(request_opt);
+    }
+    else {
+        document.write(issued.status + '\n');
+        document.write(issued.statusString + '\n');
+    }
+
+    if(issued.status == 0) {
+        document.write("Renew OK" + '\n');
+        document.write(issued.status + '\n');
+        document.write(issued.statusString);
+        document.write(issued.signCertPem);
+        document.write(issued.signPriPem);
+    }
+    else {
+        document.write(issued.status + '\n');
+        document.write(issued.statusString + '\n');
+    }
+
+    document.write("</pre>")
+
+</script>
+
+</body>
+</html>

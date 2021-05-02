@@ -1,0 +1,102 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, target-densitydpi=device-dpi" />
+
+	<script type="text/javascript">
+		require([GINI_MANIFEST["cwui.js"]], function(_ini) {
+			var _handleInfo;
+			var thisModalId = "INI_subModalDialog";
+			var targetModalId = "INI_ModalDialog_03";
+			
+			// 초기화
+			function subInitialize() {
+				_handleInfo = requirejs("jquery")( "#" + thisModalId ).data("GINI_handleInfo");
+				_handleInfo.serviceInfo.setParameter("INI_Is_DetailView", true);
+				_handleInfo.serviceInfo.setEventDeviceId(_ini.constants.Certs.STORAGE_BROWSER);
+				_handleInfo.serviceInfo.setDeviceSub(undefined);
+				_handleInfo.serviceInfo.setCallback(_ini.MobileForm.MobileDrawForm.drawMobileCertDetailInfo);
+				_handleInfo.optionInfo.setParameter("CERT_VIEW_TYPE", _ini.constants.Certs.CERTIFICATE_DETAIL_ATTR);
+				// 인증서 속성정보
+				_ini.Certs.getCertAttributeInfo(_handleInfo);
+			};
+			
+			requirejs("jquery")(document).ready(function() {
+				
+				subInitialize();
+			});
+			
+			//메세지 공통 처리
+			requirejs("jquery")("#CERT_MANAGE_TITLE").text(_ini.msgFactory.getMessageFactory().WebForm().TITLE().CERT_MANAGE_TITLE  );			// 인증서 관리
+			requirejs("jquery")(".prev").html('<img src="' + GINI_HTML5_BASE_PATH + '/res/img/mobile/common/dum_btn_prev.png" alt="'+_ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_003+'" />');
+			requirejs("jquery")("#INI_cert_CertRemove").text(_ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_MANAGE().W_T_C_M_013); 							//인증서 삭제
+			requirejs("jquery")("#INI_cert_CertChangePw").text(_ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_CHANGE_PW().W_T_C_CP_006);								// 암호 변경
+
+			// 기능버튼 
+			requirejs("jquery")('.prev').click(function(){
+				requirejs("jquery")("#" + thisModalId ).dialog('close');
+			});
+			// 인증서 암호 변경 
+			requirejs("jquery")('#INI_cert_CertChangePw').click(function(){
+				// 변경하고자 하는 인증서 아이디 
+				_ini.MobileForm.MobileSubForm(_ini.constants.WebForm.FormId.SubForm.CertChangePasswordForm, _handleInfo, targetModalId);
+			});
+			// 인증서 삭제
+			requirejs("jquery")('#INI_cert_CertRemove').click(function (e) {
+				var INI_popupHandleInfo = [];
+				INI_popupHandleInfo["OK"] = 
+					function(){
+						_handleInfo.serviceInfo.setCallback(
+								function(){
+									requirejs("jquery")("#INI_subModalDialog").dialog('close');
+									requirejs("jquery")("#INI_ModalDialog_03").dialog('close');
+									requirejs("jquery")("#INI_ModalDialog_04").dialog('close');
+									_handleInfo.serviceInfo.setCallback(_ini.MobileForm.MobileDrawForm.drawMobileCertList);
+									_ini.Certs.getCertAttributeList(_handleInfo);
+								}
+							);
+						_ini.CertManager.removeCertificate(_handleInfo);
+					}
+				INI_popupHandleInfo["CANCEL"] = undefined;
+				INI_CONFIRM(_ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_MANAGE().W_T_C_M_014, "confirm", INI_popupHandleInfo);
+			});
+		});
+	</script>
+
+</head>
+
+<body>
+    <div class="m-initech-certificate-wrap" id="m-initech-certificate-wrap">
+        <header class="sticky">
+            <div class="inner-wrap">
+				<h1 id="CERT_MANAGE_TITLE"></h1>
+				<a href="javascript:void(null);return false;" class="prev" id="INI_PRIV_BTN"></a>
+            </div>
+        </header>
+        <section class="m-ini-cert-cont">
+            <div class="inner-wrap">
+                <!-- 인증서 목록 -->
+                <div class="m-ini-cert-list cert-select" id="INI_cert_single"></div>
+                <!-- // 인증서 목록 -->
+                 
+                <div class="m-ini-cert-view">
+                    <!-- 버튼 영역 -->
+                    <div class="m-ini-mcert-btns">
+                        <span class="w48p"><a href="javascript:void(null);return false;" class="outline" id="INI_cert_CertRemove"></a></span>
+                        <span>&nbsp;</span>
+                        <span><a href="javascript:void(null);return false;" class="outline" id="INI_cert_CertChangePw"></a></span>
+                    </div>
+                    
+                    <!-- // 버튼 영역 -->
+                    <!-- 인증서 정보(detail) -->
+                    <div class="m-ini-cert-info dl-table" id="INI_cert_info_list">
+                    </div>
+                    <!-- // 인증서 정보 -->
+                </div>
+            </div>
+        </section> <!-- // .cert-contents -->
+    </div> <!-- // .m-initech-certificate-wrap -->
+</body>
+
+</html>

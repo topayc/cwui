@@ -1,0 +1,129 @@
+<script type="text/javascript">
+   require([GINI_MANIFEST["cwui.js"]], function(_ini) {
+   	
+	// initech parameter handle object
+	var _handleInfo = requirejs("jquery")("#INI_change_area").data("GINI_handleInfo");
+	
+	var encP12Cert; 
+	var INI_authNum;
+	
+	// 초기화
+	function initialize(){
+		if(_handleInfo.serviceInfo.getParameter("SAVE_TYPE") === "p12"){
+			requirejs("jquery")("#certificate_find").hide();
+			encP12Cert = _handleInfo.serviceInfo.getParameter("ENC_P12_CERT");
+			INI_authNum = _handleInfo.serviceInfo.getParameter("AUTH_NUM");
+		}
+		
+		_handleInfo.serviceInfo.setParameter("KeypadFrmName" ,"keypadFrm");
+		_ini.KeyPad.initializeKeyPad(_handleInfo);
+	};
+	
+	function submitSaveProc(){
+		
+		function doCallBack(data){
+			_handleInfo.serviceInfo.setCallback(doCallBackFinish);
+			if(_handleInfo.serviceInfo.getParameter("SAVE_TYPE") === "p12"){
+				_handleInfo.serviceInfo.setParameter("AUTH_NUM", INI_authNum);
+				_handleInfo.serviceInfo.setParameter("CERT_STATUS", "COMPLETE");
+				_ini.CertManager.certImportExport.setCertStatus(_handleInfo);
+			} else {
+				_handleInfo.serviceInfo.getParameter("SUBMIT")(_handleInfo.serviceInfo.getParameter("PWD"));
+			}
+		}
+		
+		function doCallBackFinish(result){
+			encP12Cert = undefined;
+			INI_authNum = undefined;
+			if(_handleInfo.serviceInfo.getParameter("SAVE_SUBMIT") === "Y"){
+				_handleInfo.serviceInfo.getParameter("SUBMIT")(_handleInfo.serviceInfo.getParameter("PWD"));
+			} else {
+				_ini.WebForm.closeModal();
+				INI_HANDLE.infoMessage(_ini.msgFactory.getMessageFactory().Info.INFO_1004);
+			}
+		}
+		
+		// validation 
+		// 1. storage 선택여부 (sub 포함)
+		// 2. 비밀번호/비밀번호 확인 입력여부.
+		// 3. 비밀번호/비밀번호 확인 일치 여부.
+		// 4. 비밀번호 유효성 여부.
+		var INI_pwd = requirejs("jquery")('input[name="INI_cert_find_userPw"]').val();
+		if((INI_pwd === undefined) || (INI_pwd === '')){
+			// 패스워드가 입력 되지 않을 경우.
+			INI_HANDLE.warnMessage(_ini.msgFactory.getMessageFactory().Warn.WARN_1012);
+			requirejs("jquery")('#INI_cert_find_userPw').focus();
+			return;
+		}
+		_handleInfo.serviceInfo.setParameter("PWD", INI_pwd);
+		_handleInfo.serviceInfo.setCallback(doCallBack);
+		_handleInfo.serviceInfo.setExceptionCallback(
+			function(){
+				requirejs("jquery")('input[name="INI_cert_find_userPw"]').val("");
+				GINI_ProtectMgr.clean("NONCE");
+			}
+		);
+		
+		if(_handleInfo.serviceInfo.getParameter("SAVE_TYPE") === "p12"){
+			_handleInfo.serviceInfo.setParameter("ENC_P12_CERT", encP12Cert);
+			_ini.CertManager.saveMobilePriCert(_handleInfo);
+		} else {
+			_ini.CertManager.saveMobilePriCert(_handleInfo);
+		}
+	}
+	
+	requirejs("jquery")(document).ready(function() {
+
+		// text
+		requirejs("jquery")("#INI_storage_select_title").text(_ini.msgFactory.getMessageFactory().WebForm().TEXT().COMMON().W_T_001);
+		requirejs("jquery")("#INI_cert_second_modal_title").text(_ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_CMP().W_T_C_CMP_001);
+		requirejs("jquery")("#INI_CertPw_text").text(_ini.msgFactory.getMessageFactory().WebForm().TEXT().COMMON().W_T_004);
+		requirejs("jquery")(".msg_placeholder").attr("placeholder" , _ini.msgFactory.getMessageFactory().WebForm().TEXT().COMMON().W_T_004  );		// 인증서 암호를 입력해 주세요
+		
+		requirejs("jquery")("#INI_cert_issue_text").html(_ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_CMP().W_T_C_CMP_003);
+		requirejs("jquery")("#INI_CertPw_title").text(_ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_CHANGE_PW().W_T_C_CP_002);
+		
+		// button
+		requirejs("jquery")("#INI_cert_SaveSubmit").val(_ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_001);
+		requirejs("jquery")("#INI_secondClose").val(_ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_002);
+		
+		requirejs("jquery")("#INI_secondClose").click(function(){
+			_ini.WebForm.closeModal();
+		});
+
+		// 인증서 발급 버튼 클릭 
+		requirejs("jquery")('#INI_cert_SaveSubmit').click(function(){
+   			submitSaveProc();
+		});
+		
+		
+		initialize();
+   	});
+});
+</script>
+
+<body>
+    <div class="m_iinitech_certificate_wrap">
+    <section>
+		<article class="certificate_login_area tab_btn_display-show" >
+        	<div class="m_login_layout" id="INI_change_area"></div>
+		</article>
+			    
+		<div class="search_section_zone" id="simple_search_wrap">
+		    <!--인증서암호입력-->
+		    <div class="certificate_password">
+		        <div class="certificate_password">
+		            <span class="title"><span id="INI_CertPw_title"></span></span>
+		            <ul>
+		                <li class="enter_password"><input type="password" title="password" class="msg_placeholder" placeholder="인증서 암호는 대.소문자를 구분합니다." name="INI_cert_find_userPw" autocomplete="off"/></li>
+		                <li class="password_confirm"><button id="INI_cert_SaveSubmit"></button></li>
+		            </ul>
+		        </div>
+		    </div>
+		    <!--//인증서암호입력-->
+		</div>
+	<!--//간편찾기-->
+	</section>
+        
+    </div>
+</body>

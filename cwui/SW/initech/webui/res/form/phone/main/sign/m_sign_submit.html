@@ -1,0 +1,170 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="Cache-Control" content="no-cache"/> 
+	<meta http-equiv="Expires" content="0"/>
+	<meta http-equiv="Pragma" content="no-cache"/> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, target-densitydpi=device-dpi" />
+	<title></title>
+
+	<script type="text/javascript">
+	
+		var _previousSubmit;
+		var goDetailFuc;
+	
+	 	require([GINI_MANIFEST["cwui.js"]], function(_ini) {
+	 		// color pack css 세팅
+    	    _ini.WebForm.getColorPackCss();
+	 	
+	   		var _handleInfo;
+	   		var _thisModalId = "INI_mainModalDialog";
+	   		
+			// 초기화
+			function initialize(){
+				_handleInfo = requirejs("jquery")("#" + _thisModalId).data("GINI_handleInfo");
+				_handleInfo.serviceInfo.initialize();
+				_handleInfo.serviceInfo.setBehavior(_ini.constants.WebForm.ACTION_SIGN);
+				_handleInfo.serviceInfo.setEventDeviceId(_ini.constants.Certs.STORAGE_BROWSER);
+				_handleInfo.serviceInfo.setDeviceSub(undefined);
+				_handleInfo.optionInfo.setParameter("USE_SESSION", false);
+				
+				// signForm 그리기
+				var orgText = decodeURIComponent(_handleInfo.requestInfo.getParameter("ORG_DATA"));
+				_handleInfo.serviceInfo.setParameter("SUBMIT", submitSign);
+				_ini.MobileForm.MobileDrawForm.drawMobileSignForm(orgText);
+			};
+			
+			// 전자서명
+			function submitSign(pwd){
+				if(!pwd){
+					INI_HANDLE.warnMessage(_ini.msgFactory.getMessageFactory().Warn.WARN_1012);
+					requirejs("jquery")('#INI_userPw').focus();
+				 	return;
+				}
+				
+				if(_handleInfo.serviceInfo.getParameter("CERT_ID") == undefined){
+					INI_HANDLE.warnMessage(_ini.msgFactory.getMessageFactory().Warn.WARN_1015);
+					requirejs("jquery")('#INI_userPw').focus();
+				 	return;
+				}
+
+				function doSignatureCB(){
+					_handleInfo.stateInfo.setResult("CONFIRM");
+					// close
+					_ini.WebForm.closeModal();
+				}
+				
+				_handleInfo.serviceInfo.setParameter("PWD", pwd);
+				_handleInfo.serviceInfo.setCallback(doSignatureCB);
+				_handleInfo.serviceInfo.setExceptionCallback(
+					function(){
+	 					requirejs("jquery")('input[name="INI_userPw"]').val("");
+	 					GINI_ProtectMgr.clean("NONCE");
+	 				}
+	 			);
+
+   				_ini.Signature.doSign(_handleInfo);
+			};
+			
+			// submit이전 Logic
+			_previousSubmit = function(pwd){
+				_handleInfo.serviceInfo.setParameter("PWD", pwd);
+				_handleInfo.serviceInfo.setParameter("pwdId", "INI_userPw");
+				_ini.KeyPad.getKeyPadValue(_handleInfo, submitSign, "NONCE");
+			};
+			
+			requirejs("jquery")(document).ready(function() {
+				
+				requirejs("jquery")(".prev").html('<img src="' + GINI_HTML5_BASE_PATH + '/res/img/mobile/common/dum_btn_prev.png" alt="'+_ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_003+'" />');
+				requirejs("jquery")("#INI_sign_submit_title").text(_ini.msgFactory.getMessageFactory().WebForm().TITLE().SIGN_TITLE);												// 로그인
+				requirejs("jquery")("#INI_sign_submit_cancel").text(_ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_002);
+				requirejs("jquery")("#INI_Btn_CerPass").text(_ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_001);
+				requirejs("jquery")("#msg_cert_search_login").html(_ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_MANAGE().W_T_C_M_011);	// 사용하실 인증서가 없는 경우 <br><b><em>인증서 찾기를 통해 로그인</em> 하세요.</b>
+				
+				// 인증서 암호 입력 버튼  
+				requirejs("jquery")("#INI_Btn_CerPass").click(function(){
+					
+					var selected = _ini.Certs.SelectedCertInfo;
+					requirejs("jquery")("#INI_cert_sign_area").hide();
+					if(selected){
+						_handleInfo.serviceInfo.setEventDeviceId(selected.deviceId);
+						_handleInfo.serviceInfo.setDeviceSub(selected.deviceSub);
+						_handleInfo.serviceInfo.setParameter("CERT_ID", selected.certId);
+						
+						_ini.MobileForm.MobileSubForm(_ini.constants.WebForm.FormId.SubForm.CertDetailForm, _handleInfo);
+					}else{
+				        requirejs("jquery")("#INI_sign_plain_text_div").hide();
+				        requirejs("jquery")("#INI_sign_cert_list_div").show();
+						_handleInfo.serviceInfo.setCallback(_ini.MobileForm.MobileDrawForm.drawMobileCertList);
+						_ini.Certs.getCertAttributeList(_handleInfo);
+					}
+					requirejs("jquery")("#INI_login_section").show();
+					
+				});
+				
+				requirejs("jquery")("#INI_sign_submit_cancel").click(function(){
+					requirejs("jquery")("#INI_mainModalDialog").dialog('close');
+				});
+				// search 클릭시
+				requirejs("jquery")('#INI_M_SEARCH').click(function(){
+					_ini.MobileForm.MobileSubForm(_ini.constants.WebForm.FormId.SubForm.CertSearchForm, _handleInfo);
+					return false;
+				}).css("cursor","pointer");
+				
+				goDetailFuc = function(id){
+					 _handleInfo.serviceInfo.setParameter("CERT_ID", id);
+					_ini.MobileForm.MobileSubForm(_ini.constants.WebForm.FormId.SubForm.CertDetailForm, _handleInfo);
+					return false;
+				}
+				
+				initialize();
+	    	});
+		});	
+
+	 	function goDetail(id){
+			goDetailFuc(id);
+		}
+	</script>
+
+</head>
+<body>
+
+   <div class="m-initech-certificate-wrap" id="m-initech-certificate-wrap">
+        <header class="sticky">
+            <div class="inner-wrap">
+                <h1 id="INI_sign_submit_title"></h1>
+                <a href="javascript:void(null);return false;" class="prev" id="INI_PRIV_BTN"></a>
+            </div>
+        </header>
+        <section class="m-ini-cert-cont" id="INI_sign_plain_text_div">
+            <div class="inner-wrap">
+                <!-- sign section -->
+                <div class="m-ini-cert-info">
+                	<div class="dl-table" id="INI_sign_plan_table_data"></div>
+                </div>
+               <!-- // sign section -->
+                <!-- 버튼 영역 -->
+                <div class="m-ini-cert-btns">
+                    <span class="w48p"><a href="javascript:void(null);return false;" id="INI_sign_submit_cancel" class="INI_btn_prev"></a></span>
+                    <span>&nbsp;</span>
+                    <span><a href="javascript:void(null);return false;" class="emp" id="INI_Btn_CerPass"></a></span>
+                </div>
+            </div>
+        </section> <!-- // .cert-contents -->
+        <section class="m-ini-cert-cont" id="INI_sign_cert_list_div" style="display: none;">
+			<div class="inner-wrap">
+				<!-- 인증서 목록 -->
+				<div class="m-ini-cert-list" id="INI_M_CERTLIST"></div>
+				<!-- // 인증서 목록 -->
+				<!-- 인증서 찾기 -->
+                <div class="m-ini-cert-more" id="INI_M_SEARCH">
+                        <a href="javascript:void(null);return false;" id="msg_cert_search_login"></a>
+                </div>
+                <!-- // 인증서 찾기 -->
+			</div>
+		</section>
+    </div> <!-- // .m-initech-certificate-wrap -->
+    
+</body>
+</html>

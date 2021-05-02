@@ -1,0 +1,210 @@
+
+    require([ 'constants', 'defaultConf', 'initechApp', 'msgFactory', 'system'], function(constants, defaultConf, initechApp, msgFactory, system) {
+    	// color pack css 세팅
+	    //initechApp.WebForm.getColorPackCss();
+    	
+    	// initech parameter handle object
+		var _handleInfo;
+		
+		// 초기화
+		function initialize(){
+			var selectedDeviceId;
+			if(GINI_3rd_Party_Control.extensionPKI.getInstalled()){
+				selectedDeviceId = constants.Certs.STORAGE_HDD;
+			}else{
+				selectedDeviceId = constants.Certs.STORAGE_BROWSER;
+			}
+			
+			_handleInfo = J("#INI_mainModalDialog").data("GINI_handleInfo");
+			_handleInfo.serviceInfo.setEventDeviceId(selectedDeviceId);
+			_handleInfo.serviceInfo.setDeviceSub(undefined);
+			
+			// 1. 초기 _handleInfo.serviceInfo.getDeviceId() 값 필터 고려
+			var selected = initechApp.Certs.getSelectedCertInfo();
+			// 2. 매체(storage)
+   			initechApp.WebForm.dialogdrawStorageList('INI_storage_list', _handleInfo.serviceInfo.getAction(), selected);
+			initechApp.StorageManage.setFocusStorage(_handleInfo.serviceInfo.getDeviceId());
+			
+   			if(selected){
+				_handleInfo.serviceInfo.setEventDeviceId(selected.deviceId);
+				_handleInfo.serviceInfo.setDeviceSub(selected.deviceSub);
+				// 캐시된 내용에 따른 버튼 처리 
+				J("#INI_cert_search_btn").addClass('disabled');
+				J("#INI_cert_remove_btn").addClass('disabled');
+				J("#INI_cert_search_btn").parent().children("i").css("cursor","default");
+				J("#INI_cert_remove_btn").parent().children("i").css("cursor","default");
+			}
+			
+			// signForm 그리기
+			var orgText = decodeURIComponent(_handleInfo.requestInfo.getParameter("ORG_DATA"));
+			initechApp.WebForm.drawSignForm(orgText);
+			
+			
+			if(_handleInfo.serviceInfo.getDeviceId() === constants.Certs.STORAGE_USIM){
+				
+				J('.media_select ul.media_list li.list_data').removeClass('list_select');
+    	        J("#EXTEND" ).parent('li').addClass('list_select');
+    	        
+				initechApp.WebForm.drawCertList({}, _handleInfo.serviceInfo.getDeviceId());
+				
+	        	_handleInfo.serviceInfo.setParameter("USIM_FILTER_OID", defaultConf.Certs.getUSIMFilterList().USIM_FILTER_OID);
+	        	_handleInfo.serviceInfo.setParameter("USIM_FILTER_ISSUERDN", defaultConf.Certs.getUSIMFilterList().USIM_FILTER_ISSUERDN);
+//	        	_handleInfo.serviceInfo.setParameter("USIM_FILTER_SUBJECTDN", defaultConf.Certs.getUSIMFilterList().USIM_FILTER_SUBJECTDN);
+//	        	_handleInfo.serviceInfo.setParameter("USIM_FILTER_SERIAL", defaultConf.Certs.getUSIMFilterList().USIM_FILTER_SERIAL);
+	        	_handleInfo.serviceInfo.setParameter("USIM_FILTER_CA", defaultConf.Certs.getUSIMFilterList().USIM_FILTER_CA);
+	        	_handleInfo.serviceInfo.setParameter("USIM_FILTER_EXPIRED", defaultConf.Certs.getUSIMFilterList().USIM_FILTER_EXPIRED);
+	        	
+	        	_handleInfo.serviceInfo.setCallback(doSignatureCB);
+	        	_handleInfo.serviceInfo.setExceptionCallback(
+  	 					function(){
+  	 						initechApp.KeyPad.initializeKeyPad(_handleInfo);
+  	 					}
+					);
+	        	
+	    		initechApp.Signature.doSign(_handleInfo);
+			} else {
+				initechApp.StorageManage.storageClick(_handleInfo);
+				
+				// PC정보 추출할 SercureNonce 값 세팅
+				initechApp.IniSafeNeo.PCInfo.setPCInfoSecureNonce(_handleInfo.optionInfo.getParameter("SECURE_NONCE"));
+				
+				_handleInfo.serviceInfo.setParameter("virtualCloseCallback", function (){initechApp.KeyPad.initializeKeyPad(_handleInfo);});
+				_handleInfo.serviceInfo.setParameter("KeypadFrmName" ,"keypadFrm");
+				initechApp.KeyPad.initializeKeyPad(_handleInfo);
+			}
+			
+			//popup
+			initechApp.WebForm.drawCustomBanner("INI_custom_banner");
+		}
+		
+		function doSignatureCB(){
+			_handleInfo.stateInfo.setResult("CONFIRM");				
+			// close
+			initechApp.WebForm.closeModal();
+		}
+		
+		// 전자서명
+		function submitSignature(pwd){
+			
+			if(_handleInfo.serviceInfo.getParameter("CERT_ID") == undefined){
+				INI_HANDLE.warnMessage(msgFactory.getMessageFactory().Warn.WARN_1015);
+			 	J('#INI_userPw').focus();
+			 	return;
+			}
+			
+			_handleInfo.serviceInfo.setParameter("PIN", pwd);
+			_handleInfo.serviceInfo.setParameter("PWD", pwd);
+			_handleInfo.serviceInfo.setCallback(doSignatureCB);
+			_handleInfo.serviceInfo.setExceptionCallback(
+				function(){
+					initechApp.KeyPad.initializeKeyPad(_handleInfo);
+				});
+			
+			initechApp.Signature.doSign(_handleInfo);
+		};
+    	
+		// submit이전 Logic
+		function previousSubmit(pwd){
+			if(_handleInfo.serviceInfo.getDeviceId() === constants.Certs.STORAGE_SECURITY_TOKEN){
+				_handleInfo.serviceInfo.setParameter("PIN", pwd);
+				_handleInfo.serviceInfo.setParameter("pwdId", "INI_userPw");
+				initechApp.KeyPad.getKeyPadValue(_handleInfo, submitSignature, "SECURE");
+			} else {
+				_handleInfo.serviceInfo.setParameter("PWD", pwd);
+				_handleInfo.serviceInfo.setParameter("pwdId", "INI_userPw");
+				initechApp.KeyPad.getKeyPadValue(_handleInfo, submitSignature, "NONCE");
+			}
+		};
+		
+		function pwKeypadEnter(){
+			J('#INI_certSubmit').focus().click();				
+		}
+		
+		J(document).ready(function() {
+			
+			// ------------------- 메세지 처리 Start -------------------------------------------------------------------------------------------------------- //
+			// --------------------------------------------------------------------------------------------------------------------------------------------- //
+			//현재 페이지 업무명 -전자서명.
+			J("#INI_cert_modal_title").text(msgFactory.getMessageFactory().WebForm().TITLE().SIGN_TITLE);
+			// 공인인증서 로그인 창 닫기.
+			J("#INI_windowClose").html('<img src="' + GINI_HTML5_BASE_PATH + '/initech/html5/images/btn/btn_close_w.png" alt="'+msgFactory.getMessageFactory().WebForm().ALT().W_ALT_001+'" />');
+			// 로고 이미지 삽입.
+			initechApp.WebForm.drawLogo("MAIN");
+			// 화면 텍스트 및 문구 변경
+			J("#INI_storage_select_title").text(msgFactory.getMessageFactory().WebForm().TEXT().COMMON().W_T_001);
+			J("#INI_certificate_section_title").text(msgFactory.getMessageFactory().WebForm().TEXT().COMMON().W_T_002);
+			J("#INI_cert_passwd_help_msg").text(msgFactory.getMessageFactory().WebForm().TEXT().COMMON().W_T_003);
+    		J("#INI_cert_passwd_label").text(msgFactory.getMessageFactory().WebForm().TEXT().COMMON().W_T_004);
+			J("#INI_signature_text").html(msgFactory.getMessageFactory().WebForm().TEXT().SIGN().W_T_S_001);
+			document.getElementById("INI_userPw").setAttribute("placeholder", msgFactory.getMessageFactory().WebForm().TEXT().COMMON().W_T_003);
+			
+			// 인증서 목록 하단 기능 버튼.
+    		J("#INI_cert_detail_info_btn").text(msgFactory.getMessageFactory().WebForm().BUTTON().W_B_006);	// 인증서 삭제.
+			J("#INI_cert_search_btn").text(msgFactory.getMessageFactory().WebForm().BUTTON().W_B_007);			// 인증서 가져오기.
+			J("#INI_cert_remove_btn").text(msgFactory.getMessageFactory().WebForm().BUTTON().W_B_008);		// 인증서 보기.
+			
+    		J("#INI_certSubmit").text(msgFactory.getMessageFactory().WebForm().BUTTON().W_B_001);
+			J("#INI_certClose").text(msgFactory.getMessageFactory().WebForm().BUTTON().W_B_002);
+    		
+			// ------------------- 메세지 처리 End --------------------------------------------------------------------------------------------------------- //
+			// --------------------------------------------------------------------------------------------------------------------------------------------- //
+			// 인증서 modal close
+			J('#INI_certClose').click(function(){
+				initechApp.WebForm.closeModal();
+			});
+			J('#INI_windowClose').click(function(){
+				initechApp.WebForm.closeModal();
+			});
+			
+			/* 전자서명 확인 버튼 클릭 */
+			J('#INI_certSubmit').click(function(){
+				var pwd = J('input[name="INI_userPw"]').val();
+				if(isInputPWEmpty( pwd )){
+    					INI_HANDLE.warnMessage(msgFactory.getMessageFactory().WebForm().TEXT().CERT_CMP().W_T_C_CMP_003);
+    			}else{
+    				_handleInfo.serviceInfo.setParameter("PWD", pwd);
+					_handleInfo.serviceInfo.setParameter("PIN", pwd);
+					_handleInfo.serviceInfo.setParameter("pwdId", "INI_userPw");
+					_handleInfo.serviceInfo.setParameter("previousSubmit", previousSubmit);
+					initechApp.KeyPad.run(_handleInfo);
+				}
+			});
+			
+			J('#INI_userPw_tk_btn').click(function(){
+				//initechApp.KeyPad.initializeKeyPad(_handleInfo, true);
+				//J('#INI_userPw').focus().click();
+				
+				J('#INI_userPw').val("");
+				GINI_ProtectMgr.clean("NONCE");
+				GINI_ProtectMgr.clean("SECURE");
+					
+				_handleInfo.serviceInfo.setParameter("pwdId", "INI_userPw");
+				_handleInfo.serviceInfo.setParameter("pwdElement", document.keypadFrm.INI_userPw);
+				_handleInfo.serviceInfo.setParameter("previousSubmit", previousSubmit);
+				initechApp.KeyPad.click(_handleInfo,true);
+				initechApp.KeyPad.setEnterCallback(pwKeypadEnter);
+				
+				
+			});
+			/* 가상키패드 or E2E Click */
+    		J('#INI_userPw').click(function(){    			
+				if(_handleInfo.serviceInfo.getParameter("CERT_ID") == undefined){
+					INI_HANDLE.warnMessage(msgFactory.getMessageFactory().Warn.WARN_1015);
+				 	return;
+				}
+				J('#INI_userPw').val("");
+				GINI_ProtectMgr.clean("NONCE");
+				GINI_ProtectMgr.clean("SECURE");
+				
+				_handleInfo.serviceInfo.setParameter("pwdId", "INI_userPw");
+				_handleInfo.serviceInfo.setParameter("pwdElement", document.keypadFrm.INI_userPw);
+					_handleInfo.serviceInfo.setParameter("previousSubmit", previousSubmit);
+					
+				initechApp.KeyPad.click(_handleInfo,false);
+				
+			});
+			
+			initialize();
+    	});
+	});
+    

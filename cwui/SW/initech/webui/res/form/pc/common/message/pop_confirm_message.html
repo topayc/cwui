@@ -1,0 +1,65 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="Cache-Control" content="no-cache"/> 
+	<meta http-equiv="Expires" content="0"/>
+	<meta http-equiv="Pragma" content="no-cache"/> 
+	<title></title>
+	<script type="text/javascript">
+
+    	require([GINI_MANIFEST["cwui.js"]], function(_ini) {
+    		var INI_popupHandleInfo = requirejs("jquery")("#INI_message_modal").data("INI_popupHandleInfo");
+    		
+    		requirejs("jquery")(document).ready(function() {
+    			// CSS Import
+    			_ini.WebForm.getColorPackCss();
+    			// 확인버튼 처리
+   				requirejs("jquery")('#btnConfirmOK').on('click', function (e) {
+   					if(INI_popupHandleInfo && INI_popupHandleInfo["OK"]){
+   						INI_popupHandleInfo["OK"]();
+   					}
+					requirejs("jquery")("#INI_message_modal").dialog('close');
+    			});
+    			// 취소버튼 처리
+   				requirejs("jquery")('#btnConfirmCancel').on('click', function (e) {
+   					if(INI_popupHandleInfo && INI_popupHandleInfo["CANCEL"]){
+	   					INI_popupHandleInfo["CANCEL"]();
+   					}
+					requirejs("jquery")("#INI_message_modal").dialog('close');
+    			});
+    			// X 박스 클릭 처리
+   				requirejs("jquery")('.layer_close').on('click', function (e) {
+   				 	requirejs("jquery")('#btnConfirmCancel').focus().click();
+			        return false;
+    			});
+	    	});
+			/* 메세지 처리 공통 처리 */
+			requirejs("jquery")("#btnConfirmOK").text( _ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_001);
+			requirejs("jquery")("#btnConfirmCancel").text( _ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_002);
+			/* 메세지 처리 공통 처리*/
+    	});
+    </script>
+
+</head>
+<body>
+	<!-- Dim Div -->
+	<div class="dimmed" style="display:block;"></div>
+
+	<!--  ------------------------------------ Message Div ------------------------------------------------------------------- -->
+	<div class="ini_message_alert" id="ini_message_alert" style="top:50%; left:50%; margin:-89px 0 0 -145px">
+			<div>
+				<span class="icon"></span>
+				<p><b id="msg_area"></b></p>
+				<div class="btn_area">
+					<button type="button" class="emp" id="btnConfirmOK" style="background:#2b40ab;"></button>
+					<span>&nbsp;</span>
+					<button type="button" id="btnConfirmCancel" style="background:#5e5e5e;"></button>
+				</div>
+			</div>
+			<a href="javascript:void(null);return false;" class="layer_close btn" ><img src="" id="close_a"></a>
+	</div>
+    <!--  ------------------------------------ Message Div ------------------------------------------------------------------- -->
+   
+</body>    
+</html>

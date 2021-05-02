@@ -1,0 +1,27 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xml:lang="ko" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<script type="text/javascript" src="/Transkey/transkey.js"></script>
+<link rel="stylesheet" type="text/css" href="/Transkey/transkey.css" /> 
+		
+</head>
+<body onload="initTranskey();">
+<form id="frm" action="validate2.jsp" method="post">
+ (yt)새 인증서<input name="crtTest" id="crtTest" type="password" data-tk-isCrt="true" data-tk-kbdType="qwerty" data-tk-keyboard="qwerty" onclick="tk.onKeyboard(this);" /><span id="crtTest_tk_btn">마우스입력</span>
+				<input type="button" value="getCipherData" onclick="getCipherTest46();"></input>
+</form>
+
+<script type="text/javascript">
+
+
+function getCipherTest46(){
+	//공개키 헤더 제거 공백 칸바꿈 제거
+	tk.crtPublicKey = "MIIBCgKCAQEAkTNnRv8xGADNmmaRxdCQeDBkRIPKszjXtUJxHBI9RDVrEeHcB/YNkOv4SaFSw3NYB0mOvxrjTqePr4QUqHmVFuL6AiHxTUtEsWROvosrq+GOglpcWGx2Sjtf58nv7Fv9ed9/k8T4em7tZEQWedc/MF7e6Ekg8/OLSBVhXcOW+ChgmsB0CIniwRFOS5XOsCBjjUXLDczd7xl8gq74/rgSDsZTIe1AU7l1ZY35+JLfLSQE512AqUgw3rk+on/W5imwZ7FOl3L2evL80FcLZgcNeV4kN2j1BDtvZqxMqtgS4kvgaLCwsq10fKdRiaWEPTi5VDtZnkN7IMokPBHCdV8nRQIDAQAB";
+	var v = transkey["crtTest"].getCipherData(new GenKey().tk_getrnd_int(), 'initech');
+	alert(v);
+}
+
+</script>
+</body>
+</html>

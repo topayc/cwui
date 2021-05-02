@@ -1,0 +1,49 @@
+﻿﻿<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta name="viewport"
+	content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+
+	<script type="text/javascript">
+		require([GINI_MANIFEST["cwui.js"]], function(_ini) {
+			
+			var _handleInfo;
+			
+			// 초기화
+			function subInitialize() {
+				_handleInfo = requirejs("jquery")("#INI_change_area").data("GINI_handleInfo");
+				_handleInfo.serviceInfo.setEventDeviceId(_ini.constants.Certs.STORAGE_BROWSER);
+				_handleInfo.serviceInfo.setDeviceSub(undefined);
+				_handleInfo.optionInfo.setParameter("CERT_VIEW_TYPE", _ini.constants.Certs.CERTIFICATE_NORMAL_ATTR);
+				_handleInfo.serviceInfo.setCallback(_ini.WebForm.drawCertDetail);
+				// 인증서 속성정보
+				_ini.Certs.getCertAttributeInfo(_handleInfo);
+				
+			};
+			
+			requirejs("jquery")(document).ready(function() {
+				subInitialize();
+			});
+			
+		});
+	</script>
+	<script type="text/javascript">
+		var head = document.getElementsByTagName('head')[0];
+		var script1 = document.createElement('script');
+		script1.src = GINI_HTML5_BASE_PATH + "/cw/html5/script/common/initech_mobile_common.js";
+		head.appendChild(script1);
+    </script>
+
+
+</head>
+<body>
+	<div class="info_data" id="INI_cert_detail_list"></div>
+	
+	  
+</body>
+
+</html>

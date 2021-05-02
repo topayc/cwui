@@ -1,0 +1,176 @@
+<!DOCTYPE html> 
+<html>  
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="Cache-Control" content="no-cache"/> 
+	<meta http-equiv="Expires" content="0"/>
+	<meta http-equiv="Pragma" content="no-cache"/> 
+	<title></title>
+    
+    <script type="text/javascript">
+    	require([GINI_MANIFEST["cwui.js"]], function(_ini) {
+			
+			// initech parameter handle object
+			var _handleInfo;
+			// 초기화
+			function initialize(){
+				
+	        	if(requirejs("jquery")(window).height() < 698){								
+					requirejs("jquery")("#INI_mainModalDialog").position({my:"center bottom",at:"center bottom",of:window});
+				}else{
+					requirejs("jquery")("#INI_mainModalDialog").position({my:"center middle",at:"center middle",of:window});
+				}	
+				_handleInfo = requirejs("jquery")("#INI_change_area").data("GINI_handleInfo");
+			};
+			
+			// 인증서 중계서버 가져오기
+			function submitProc(INI_authNum){
+				if((INI_authNum === undefined) || (INI_authNum === null) || (INI_authNum === '')){
+					INI_HANDLE.warnMessage(_ini.msgFactory.getMessageFactory().Warn.WARN_1028);
+					requirejs("jquery")('input[name="INI_authNum"]').eq(0).focus();
+				 	return;
+				}
+				
+				function doCallBack(encCert){
+					_handleInfo.serviceInfo.setParameter("SAVE_TYPE", 'p12');
+					_handleInfo.serviceInfo.setParameter("ENC_P12_CERT", encCert);
+					_ini.SubForm.openForm(_handleInfo, undefined, _ini.SubForm.openSubCertSaveDetailForm);
+				}
+				
+				_handleInfo.serviceInfo.setParameter("AUTH_NUM", INI_authNum);
+				_handleInfo.serviceInfo.setCallback(doCallBack);
+
+				_ini.CertManager.certImportExport.importCertV12(_handleInfo, doCallBack);
+			};
+			
+			requirejs("jquery")(document).ready(function() {
+				// ------------------- 메세지 처리 Start -------------------------------------------------------------------------------------------------------- //
+    			// --------------------------------------------------------------------------------------------------------------------------------------------- //
+    			// 기기간 인증서 복사(가져오기)
+				requirejs("jquery")("#INI_cert_search_easy_third_title").text(_ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_SEARCH().W_T_C_S_001);
+				// 사용법 
+				requirejs("jquery")("#INI_cert_search_easy_program_help_1").html(_ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_SEARCH().W_T_C_S_008_1);
+				requirejs("jquery")("#INI_cert_search_easy_program_help_2").html(_ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_SEARCH().W_T_C_S_008_2);
+				
+				// 프로그램다운로드
+				requirejs("jquery")("#INI_utilDownload").text(_ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_012);
+				
+				// 인증번호
+				requirejs("jquery")("#INI_cert_import_number_text").text(_ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_SEARCH().W_T_C_S_009);
+				requirejs("jquery")("#INI_cert_number_text").text(_ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_SEARCH().W_T_C_S_009);
+				
+				// 확인 , 이전
+				requirejs("jquery")("#INI_second_certSubmit").text(_ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_001);
+				requirejs("jquery")("#INI_secondClose").text(_ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_003);
+				
+				// 인증번호 앞 4자리 , 인증번호 뒤 4자리
+				(document.getElementsByName("INI_authNum")[0]).setAttribute("title", _ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_SEARCH().W_T_C_S_012);
+				(document.getElementsByName("INI_authNum")[1]).setAttribute("title", _ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_SEARCH().W_T_C_S_013);
+				// ------------------- 메세지 처리   End -------------------------------------------------------------------------------------------------------- //
+    			// --------------------------------------------------------------------------------------------------------------------------------------------- //
+    			
+				requirejs("jquery")("#INI_secondClose").click(function(){
+					//브라우저의 경우 간편/직접 화면으로 그 이외의 경우 리스트 화면으로 이동.
+					if(_handleInfo.serviceInfo.getDeviceId() === _ini.constants.Certs.STORAGE_BROWSER){
+						_ini.SubForm.openSubCertSearchForm(_handleInfo);
+					} else {
+						_handleInfo.serviceInfo.setParameter("CERT_ID", undefined);
+		    			_ini.StorageManage.setFocusStorage(_handleInfo.serviceInfo.getDeviceId());
+		    			_ini.StorageManage.storageClick(_handleInfo);
+					}
+				});
+				
+				// 인증서 로그인 버튼 클릭 
+				requirejs("jquery")('#INI_second_certSubmit').click(function(){
+					var INI_authNum = requirejs("jquery")('input[name="INI_authNum"]').eq(0).val() + requirejs("jquery")('input[name="INI_authNum"]').eq(1).val();
+					submitProc(INI_authNum);
+				});
+				
+// 				requirejs("jquery")('[type=password]').keypress(function(e) {
+// 				    if(e.which == 13) {
+// 						if(requirejs("jquery")("#INI_change_area").css("display") == "none"){
+// 							requirejs("jquery")('#INI_second_certSubmit').focus().click();
+// 							return false;
+// 						}
+// 				    }
+// 				});
+				
+				requirejs("jquery")("#INI_speech_down_icon_IMG").attr("src", _ini.WebForm.ColorPackImagePath + "speech-bubble_down.gif");
+				
+				// 프로그램 다운로드.
+				var browserPlatform = _ini.system.Browser.getPlatform; 
+				var downloadUrl = _ini.constants.Download.IMPORT_CERT_DOWNLOAD.URL;
+				var downloadFileName = "";
+				if (browserPlatform.toLowerCase().indexOf('win') != -1) {
+					downloadFileName = _ini.constants.Download.IMPORT_CERT_DOWNLOAD.FILE_NAME_WINDOW;
+				} else if(browserPlatform.toLowerCase().indexOf('mac') != -1){
+					downloadFileName = _ini.constants.Download.IMPORT_CERT_DOWNLOAD.FILE_NAME_MAC;
+				} else if(browserPlatform.toLowerCase().indexOf('linux') != -1){
+					if(_ini.system.Browser.is32bitsArchitecture()){
+						downloadFileName = _ini.constants.Download.IMPORT_CERT_DOWNLOAD.FILE_NAME_LINUX_32;
+					} else {
+						downloadFileName = _ini.constants.Download.IMPORT_CERT_DOWNLOAD.FILE_NAME_LINUX_64;
+					}
+				} else {
+					INI_HANDLE.warnMessage(_ini.msgFactory.getMessageFactory().Warn.WARN_1013);
+					return ;
+				}
+				
+		        requirejs("jquery")("#INI_utilDownload").on('mousedown', function () {
+// 		        	var INI_downloadLink = "";
+		        	var INI_downloadLink_iframe = document.createElement("iframe");
+		        	INI_downloadLink_iframe.setAttribute("name", "INI_utilDownload_link");
+		        	INI_downloadLink_iframe.setAttribute("id", "INI_utilDownload_link");
+		        	INI_downloadLink_iframe.setAttribute("title", "INI_utilDownload_link");
+		        	INI_downloadLink_iframe.setAttribute("style", "display: none;");
+
+		        	var html5Language = INI_LANGUAGE_HANDLE.getSystemLanguage();
+		        	
+		        	document.body.appendChild(INI_downloadLink_iframe);
+		        	document.getElementById("INI_utilDownload_link").src = downloadUrl + html5Language + "/" + downloadFileName;
+// 		        	document.getElementById("INI_utilDownload_link").location.reload();
+		        	
+		        	/* 
+		        	requirejs("jquery")('#INI_downloadLink').prop('href', downloadUrl + downloadFileName);
+		        	requirejs("jquery")('#INI_downloadLink').prop('download', downloadFileName);
+		    		requirejs("jquery")('#INI_downloadLink')[0].click(); 
+		    		*/
+		        });
+		        
+				initialize();
+	    	});
+		});
+	</script>
+</head>
+<body>
+   
+	<!-- 인증서 간편 찾기 -->
+	<h2 class="section_title" id="INI_cert_search_easy_third_title"></h2>
+	<a style="display:none;" id="INI_downloadLink" href="#" download="#"></a>
+	<div class="find_certificate simple_method">
+		<div class="find_certificate_box_text">
+			<span class="icon simple"></span>
+           	<p id="INI_cert_search_easy_program_help_1"></p>
+           	<p id="INI_cert_search_easy_program_help_2"></p>
+        	<button type="button" id="INI_utilDownload" class="btn emp" style="width:140px !important;"></button>
+		</div>
+		<fieldset>
+        	<legend><span id="INI_cert_number_text"></span></legend>
+            <div class="input_field6">
+	            <label for="cert" id="INI_cert_import_number_text"></label>
+	            <input name="INI_authNum" type="text" maxlength="4" onkeydown="return INI_onlyNumber(event)" onkeyup="INI_removeChar(event)" >
+	            <input name="INI_authNum" type="text" maxlength="4" onkeydown="return INI_onlyNumber(event)" onkeyup="INI_removeChar(event)" >
+            </div>
+		</fieldset>
+	</div>
+    <!-- // 인증서 찾기 -->
+    
+    <!-- 버튼 영역 -->
+    <div class="confirm_btn_area">
+    	<button type="button" class="emp" id="INI_second_certSubmit"></button>
+        <button type="button" class="cancel" id="INI_secondClose"></button>
+	</div>
+	<!-- //버튼 영역 -->
+	
+</body>
+</html>

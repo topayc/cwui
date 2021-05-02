@@ -1,0 +1,173 @@
+@charset "utf-8";
+
+@media print {
+	#header,#lnb,#snb,#footer {
+		display: none
+	}
+}
+
+/* Base styling (reset) */
+#html,body {
+	height: 100%;
+	margin: 0;
+	padding: 0;
+}
+
+html,body {
+	height: 97%;
+	margin: 0;
+	padding: 0;
+	background-color: #f3f4f5;
+}
+
+* {
+	margin: 0;
+	padding: 0;
+	font-family: Dotum, Arial, Verdana, sans-serif;
+	font-size: 12px;
+	color: #666;
+}
+
+img {
+	border: 0 none;
+	vertical-align: top;
+}
+
+fieldset {
+	border: 0 none;
+}
+
+
+/* link */
+a:link,a:visited,a:active {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:active {
+	text-decoration: none;
+}
+
+/* Layout */
+#header {
+	height: 69px;
+	min-width: 1165px;
+	background: url(../image/main/bg_top.gif) repeat-x;
+}
+
+.top_logo {
+	float: left;
+	margin: 16px 0 0 28px;
+}
+
+.top_logo img {
+	width: 128px;
+	height: auto;
+}
+
+ul, ol, li {
+	list-style-type:none;
+	margin:0;
+	padding:0;
+}
+
+/* GNB */
+.gnb {
+	float: left;
+	margin: 14px 0 0 44px;
+	height: 40px;
+}
+
+.gnb li {
+	float: left;
+}
+
+.gnb li a span {
+	display: inline-block;
+	height: 40px;
+	padding: 15px 20px 0 20px;
+	color: #fff;
+	font-weight: bold;
+	cursor: pointer;
+}
+
+.gnb li a:hover span {
+	color: #9fd5ff;
+}
+
+.gnb li span img {
+	margin: -2px 4px 0 0;
+	height: 18px;
+	width: auto;
+}
+
+.gnb li.on a {
+	display: inline-block;
+	height: 40px;
+	color: #0979d0;
+	font-weight: bold;
+	background: url(../image/main/gnb_on.gif) no-repeat left top;
+	padding-left: 4px;
+	line-height: 46px;
+}
+
+.gnb li.on a span {
+	display: inline-block;
+	height: 40px;
+	color: #0979d0;
+	background: url(../image/main/gnb_on.gif) no-repeat right top;
+	padding-right: 20px;
+	line-height: 16px;
+}
+
+.gnb li.on a span img {
+	margin: -2px 4px 0 -4px;
+	height: 18px;
+	width: auto; .
+	margin-top: -2px;
+}
+
+/* topInfo */
+.topInfo {
+	position: absolute;
+	height: 16px;
+	width: 300px;
+	top: 6px;
+	right: 16px;
+	text-align: center
+}
+
+.topInfo .info {
+	float: left;
+	height: 16px;
+	background: url(../image/main/bg_topInfo.png) no-repeat left top;
+	padding-left: 20px;
+	color: #ccc;
+	font-weight: bold;
+	font-size: 11px;
+	text-align: center
+}
+
+.topInfo .logout {
+	float: left;
+	height: 16px;
+	color: #ccc;
+	font-weight: normal;
+	background-color: #294b6d;
+	font-size: 11px;
+	text-align: center;
+}
+
+.topInfo .logout a {
+	float: right;
+	height: 16px;
+	background: url(../image/main/bg_topInfo.png) no-repeat right top;
+	padding-right: 20px;
+	color: #ccc;
+	font-weight: normal;
+	font-size: 11px; .
+	margin-top: -11px;
+}

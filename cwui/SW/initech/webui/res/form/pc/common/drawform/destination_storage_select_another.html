@@ -1,0 +1,309 @@
+﻿<!DOCTYPE html>
+
+<html lang="ko" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    
+	<script type="text/javascript">
+    	require([GINI_MANIFEST["cwui.js"]], function(_ini) {
+			
+    		var _handleInfo;
+			// 초기화
+    		function initialize(){
+    			_handleInfo = requirejs("jquery")("#INI_drawDialog").data("GINI_handleInfo");
+				_handleInfo.optionInfo.setParameter("CERT_VIEW_TYPE", _ini.constants.Certs.CERTIFICATE_NORMAL_ATTR);
+				// 매체(storage)
+       			_ini.WebForm.drawAnotherTargetStorageList('INI_target_storage_list', _ini.constants.WebForm.ACTION_CERT_SAVE, '', _handleInfo.serviceInfo.getDeviceId());
+       			_handleInfo.serviceInfo.setBehavior(_ini.constants.WebForm.ACTION_CERT_SAVE);
+    		};
+    		
+    		requirejs("jquery")(document).ready(function() {
+    			initialize();
+    			
+    			//메세지 처리 Start 
+    			requirejs("jquery")("#INI_target_storage_title").text(_ini.msgFactory.getMessageFactory().WebForm().TEXT().COMMON().W_T_013);
+    			// 복사 위치 선택 팝업 창 닫기.
+    			requirejs("jquery")("#INI_storage_select_close").html('<img src="' + GINI_HTML5_BASE_PATH + '/res/img/btn/btn_layer_close_large.png" alt="'+_ini.msgFactory.getMessageFactory().WebForm().ALT().W_ALT_001+'" />');
+    			requirejs("jquery")('#INI_storage_select_close').on('click', function (e) {
+    				requirejs("jquery")("#INI_drawDialog").dialog('close');
+    				
+    				_ini.WebForm.closeModal();//정범교 handleinfo안에 있는 callback 함수 콜
+    		  	});
+    		  
+    		function selectedStorage( pId, sId ) {
+				//alert( "STORAGEID : " + pId + " \n" + "SUB STORAGE ID : " + sId );
+				GINI_selectedCertificateRow = 1;
+				
+				return;
+				var runStatus = _ini.CertManager.importTimer.getLongPollTimer(); 
+				if(runStatus){
+					_ini.CertManager.importTimer.resetTimer();
+				}
+				
+				var keypadName = _handleInfo.serviceInfo.getParameter("KeypadFrmName");
+				
+				_handleInfo.clear();
+				_handleInfo.serviceInfo.setDeviceId(pId);
+				_handleInfo.serviceInfo.setEventDeviceId(pId);
+				_handleInfo.serviceInfo.setDeviceSub(sId);
+				
+				_handleInfo.serviceInfo.setParameter("KeypadFrmName", keypadName);
+
+				var selectedStorage = requirejs("jquery")(".media_select").attr("selectedStorage");
+				if(!selectedStorage || selectedStorage=="N"){
+					_ini.StorageManage.storageClick(_handleInfo);
+				} 
+				if(keypadName){
+					_ini.KeyPad.initializeKeyPad(_handleInfo);
+				}
+			}
+			
+			function _procStorageClick(pId, sId){
+				
+		    	if(_ini.constants.Certs.STORAGE_USIM == pId){
+	            	_ini.WebForm.drawCertList({}, pId);
+    	        	_handleInfo.serviceInfo.setEventDeviceId(pId);
+    	        	_handleInfo.serviceInfo.setDeviceSub(pId);
+    	        	_handleInfo.serviceInfo.setCallback(
+    	        		function(){
+    	    				_handleInfo.stateInfo.setResult("CONFIRM");
+    	    				// close
+    	    				_ini.WebForm.closeModal();
+    	    			}
+    	        	);
+    	        	
+    	        	if(_ini.constants.WebForm.ACTION_LOGIN === _handleInfo.serviceInfo.getBehavior()){
+    	        		_ini.Login.doLogin(_handleInfo);	    	        	
+    	        	} else {
+    	        		_ini.Signature.doSign(_handleInfo);
+    	        	}
+	            } else if(_ini.constants.Certs.STORAGE_PHONE == pId && _ini.constants.Certs.STORAGE_PHONE_MOBISIGN == sId){
+	            	_ini.WebForm.drawCertList({}, pId);
+    	        	_handleInfo.serviceInfo.setEventDeviceId(pId);
+    	        	_handleInfo.serviceInfo.setDeviceSub(sId);
+    	        	_handleInfo.serviceInfo.setCallback(
+    	        		function(){
+    	    				_handleInfo.stateInfo.setResult("CONFIRM");
+    	    				// close
+    	    				_ini.WebForm.closeModal();
+    	    			}
+    	        	);
+    	        	
+    	        	if(_ini.constants.WebForm.ACTION_LOGIN === _handleInfo.serviceInfo.getBehavior()){
+    	        		_ini.Login.doLogin(_handleInfo);	    	        	
+    	        	} else {
+    	        		_ini.Signature.doSign(_handleInfo);
+    	        	}	            	
+	            } else {	            	
+            		selectedStorage(pId, sId);
+	            }
+		    }
+			
+	    	function appendSubMediaList(thisObjId, targetParentNode, drawType) {
+				GINI_selectedCertificateRow = 1;
+				
+				var keypadName = _handleInfo.serviceInfo.getParameter("KeypadFrmName");
+				var preDeviceId = _handleInfo.serviceInfo.getDeviceId();
+				_handleInfo.serviceInfo.setParameter("KeypadFrmName", keypadName);
+				_handleInfo.serviceInfo.setEventDeviceId(thisObjId);
+				_handleInfo.serviceInfo.setDeviceId(preDeviceId);
+				_handleInfo.serviceInfo.setParameter("TargetParentNode", targetParentNode);
+				_handleInfo.serviceInfo.setParameter("DrawType", drawType);	// 인증서 복사시 사용, 매체 창이 별도로 뜸.	
+//				alert("targetParentNode : " + targetParentNode);
+				_ini.WebForm.drawStorageSubList(_handleInfo);
+			}
+	    	
+	    	function appendExtMediaList(){
+	    		_ini.WebForm.drawAnotherStorageExtList('INI_target_storage_ext_list', _handleInfo.serviceInfo.getBehavior());
+	    	}
+	    	
+	    	// 저장매체 선택 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+			
+		 	requirejs("jquery")('a').on('click', function(){
+		        if(requirejs("jquery")(this).attr('href') =='javascript:void(null);return false;'){
+		            return false;
+		        }
+		 	});
+		 	
+		    // 저장위치 선택  : 1 Dept 클릭 
+		    requirejs("jquery")('.save_media_list>li').each(function(){
+		        var th = requirejs("jquery")(this);
+		        var media = requirejs("jquery")('.save_media_list>li').not(th);
+		        var m = requirejs("jquery")('>a', th)
+		        var sub = requirejs("jquery")('.save_drive_select', th);
+		        var chk = requirejs("jquery")('<span class="check">'+_ini.msgFactory.getMessageFactory().WebForm().TEXT().COMMON().W_T_018+'</span>');
+		        
+		        var sc = false;
+		        var sId = "";       
+		        var targetParentNode = "";
+		       
+		        m.on('click', function(){
+		            var tm = requirejs("jquery")(this);
+
+		            media.removeClass('media_open media_selected').find('.check').remove();
+		            tm.append(chk);
+		            
+		            // 해당 아이디에 대한 하위 매체
+		            sId = tm.parent().closest('li').find('span').attr('id');
+		            targetParentNodeId = sId;
+		            // 하위 매체가 있을경우
+		            if( sub.length > 0){
+		                // 1. 하위매체 목록 get
+		                appendSubMediaList(sId, "#INI_target_storage_list #" + targetParentNodeId, "INI_POPUP");
+		                
+		                // 2. 하위매체 목록 show 
+		                th.removeClass('media_selected').addClass('media_open');
+		                requirejs("jquery")('.save_drive_select').not(sub.show()).hide();
+		                if(sc == false){
+		                    sub.find('ul').mCustomScrollbar();
+		                    sc = true;
+		                }
+		                requirejs("jquery")('.save_extension_layer').hide();
+		            }else{
+		                // 하위 매체 없을 경우, 확장매체 클릭시
+		            	if(th.closest('li').hasClass('save_media_extension')){
+		                    // 확장 매체일 경우 
+	            			// TODO
+	            			th.removeClass('media_open media_selected').find('span.check').remove();
+		                    th.removeClass('media_selected').addClass('media_open');
+		                    // 확장 매체 get 
+		                    appendExtMediaList(sId, targetParentNodeId);
+		                    requirejs("jquery")('.save_drive_select').show();
+		                    if(sc == false){
+			                    sub.find('ul').mCustomScrollbar();
+			                    sc = true;
+			                }
+			                requirejs("jquery")('.save_extension_layer').hide();
+ 		                    //requirejs("jquery")('.save_extension_layer').show();
+		                    //tm.parent().siblings('li').find('.save_drive_select').hide();
+	                    }else{
+	                    	if( _openCopyForm(sId, undefined) ){
+	                    		th.addClass('media_selected');
+	                    		requirejs("jquery")('.save_drive_select').hide();
+	                    		requirejs("jquery")('.save_extension_layer').hide();	
+	                    	}else{
+	                    		th.removeClass('media_open media_selected').find('span.check').remove();
+	                    	}
+	                    }
+		            }
+		            return false;
+		        });
+		    });
+		    
+		    //저장위치 선택  : 2 Dept 클릭 (더보기 포함안됨)
+		    requirejs("jquery")('.media_select_area .save_media_list .save_drive_select').on('click', 'ul li a', function(){
+		    	var drive = requirejs("jquery")(this);
+		    	var par = drive.parent('li').closest('.save_media');
+		    	
+		    	// 부모, 하위 매체 아이디 
+		    	var parentStorageId = par.children('a:first-child').find('span').attr('id');
+		    	var sId = drive.parent().closest('li').attr('id');
+		    	var installed = drive.parent().closest('li').attr('installed');
+				
+		    	if(sId === _ini.constants.Certs.STORAGE_PHONE_INFOVINE && !(installed == "true")){
+		    		requirejs("jquery")('.save_drive_select').hide();		    	
+		    		INI_DOWNLOAD_CONFIRM(_ini.msgFactory.getMessageFactory().Info["INFO_1012"],decodeURIComponent(attrList.DEVICE_DOWNLOAD_URL));
+		    		return false;
+		    	}		    	
+		    	_openCopyForm(parentStorageId, sId);
+		    	 	
+	            return false;
+		    });
+		    
+		    function _openCopyForm(parentStorageId, sId){
+		    	if( _isValidTargetMedia(parentStorageId) ){
+		    		_handleInfo.serviceInfo.setParameter("SOURCE_DEVICE_ID", _handleInfo.serviceInfo.getDeviceId());
+					_handleInfo.serviceInfo.setParameter("SOURCE_DEVICE_SUB", _handleInfo.serviceInfo.getDeviceSub());
+					
+		    		_handleInfo.serviceInfo.setParameter("TARGET_DEVICE_ID", parentStorageId);
+		    		_handleInfo.serviceInfo.setParameter("TARGET_DEVICE_SUB_ID", sId );
+
+		    		//-----------------------------------정범교변경---------------------------------------------------
+		    		//추가저장대상이 보안토큰일경우
+		    		if(parentStorageId == _ini.constants.Certs.STORAGE_SECURITY_TOKEN || 
+		    				parentStorageId == _ini.constants.Certs.STORAGE_SECURITY_DEVICE){
+		    			requirejs("jquery")("#INI_drawDialog").dialog('close');
+		    			_ini.SubForm.openForm(_handleInfo, undefined, _ini.SubForm.openAnotherIssueForm);	
+		    		}else{
+		    			_handleInfo.serviceInfo.setCallback(doCertIssueCallback);
+		    			_handleInfo.serviceInfo.setExceptionCallback(
+		 	 					function(){
+		 	 						_ini.KeyPad.initializeKeyPad(_handleInfo);
+		 	 						//alert();
+		 	 					}
+						);
+		    			_ini.CertManager.saveAnotherCertificate(_handleInfo);
+		    		}
+		    		//------------------------------------------------------------------------------------------------
+		    		
+		    		//정범교변경
+		    		//_ini.SubForm.openForm(_handleInfo, undefined, _ini.SubForm.openAnotherIssueForm);
+		    		
+		    		return true;
+		    	}else{
+		    		return false;
+		    	}
+		    }
+		    
+		  	//--------------정범교변경-------------------
+		    function doCertIssueCallback(){
+		    	requirejs("jquery")("#INI_drawDialog").dialog('close');
+				_ini.WebForm.closeModal();//모달창만 닫음
+			}
+		  	//---------------------------------------
+		    
+		    function _isValidTargetMedia( targetMedia, isSub ){
+			    
+		    	var sourceMedia = "";
+		    	if( isSub != undefined && isSub === true ){
+		    		sourceMedia = _handleInfo.serviceInfo.getDeviceSub();
+		    	}else{
+		    		sourceMedia = _handleInfo.serviceInfo.getDeviceId();
+		    	}
+		    		
+		    	if( sourceMedia == targetMedia ){
+		    		INI_HANDLE.warnMessage(_ini.msgFactory.getMessageFactory().Warn.WARN_1026);
+		    		return false;
+		    	}
+		    	return true;
+		    }
+
+	    	});
+    	});
+    </script>
+    
+    <style type="text/css">
+     	*{margin:0; padding:0;} 
+ 	</style>
+</head>
+
+<body>
+<div class="dimmed" style="display:block;"></div>
+<div id="initech_certificate_wrap">
+    <div class="layer_wrap" id="initech_certificate_save" style="width:490px;">
+        <div class="layer">
+            <!--저장매체 선택-->
+			<div class="media_select_area pdl20">
+			    <div class="save_media_select">
+			        <h2 class="section_title pdt20" id="INI_target_storage_title"></h2>
+			        
+					<!-- 기본 매체 (5개) -->
+					<div id="INI_target_storage_list"></div>
+					<!-- // 기본 매체 (5개) --> 
+			       <!-- 확장매체 레이어 -->
+			       <div id="INI_target_storage_ext_list"></div>
+			       <!-- // 확장매체 레이어 -->
+			        
+			    </div>
+			</div>
+			<!--//저장매체 선택-->
+        </div>
+        <div id="INI_drawDialog_close">
+        	<a href="javascript:void(null);return false;" class="layer_close" style="z-index:7002;" id="INI_storage_select_close"></a>
+        </div>
+    </div>
+</div>
+   
+</body>
+</html>

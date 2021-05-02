@@ -1,0 +1,30 @@
+<meta charset="UTF-8">
+<div class="certificate_view_area" >
+	<h2 class="section_title"  id="INI_cert_search_easy_third_title"></h2>
+	<div class="find_certificate simple_method">
+		<div class="find_certificate_box_text">
+			<span class="icon simple"></span>
+			<p id="INI_cert_search_easy_program_help_1">
+			</p>
+			<p id="INI_cert_search_easy_program_help_2">
+			</p>
+			<button type="button" class="btn INI_emp" id="INI_utilDownload"></button>
+		</div>
+		<fieldset>
+			<legend><span id="INI_cert_number_text"></span></legend>
+			<div class="input_field2">
+				<label for="cert" id="INI_cert_import_number_text"></label>
+				<input name="INI_authNum"  maxlength="4" type="text" id="cert" onkeydown="return INI_onlyNumber(event)" onkeyup="INI_removeChar(event)">
+				<input name="INI_authNum"  maxlength="4" type="text"  onkeydown="return INI_onlyNumber(event)" onkeyup="INI_removeChar(event)">
+			</div>
+			<!-- 3개일때 
+			<div class="input_field3">
+				<label for="cert">인증번호</label><input type="text" id="cert" title="인증번호 앞 4자리" value="1234"><input type="text" id="cert" title="인증번호 앞 4자리" value="1234"><input type="text" title="인증번호 가운데 4자리" value="5678">
+			</div> -->
+			<!-- 4개일때 
+			<div  class="input_field4">
+				<label for="cert">인증번호</label><input type="text" id="cert" title="인증번호 첫번째 4자리" value="1234"><input type="text" id="cert" title="인증번호 두번째 4자리" value="5678"><input type="text" id="cert" title="인증번호 세번째 4자리" value="1234"><input type="text" title="인증번호 네번째 4자리" value="5678">
+			</div> -->
+		</fieldset>
+	</div>
+</div>

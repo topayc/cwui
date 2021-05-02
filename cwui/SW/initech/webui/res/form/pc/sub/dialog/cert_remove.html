@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="Cache-Control" content="no-cache"/> 
+	<meta http-equiv="Expires" content="0"/>
+	<meta http-equiv="Pragma" content="no-cache"/> 
+	<title></title>
+    <script type="text/javascript">
+		require([GINI_MANIFEST["cwui.js"]], function(_ini) {
+			requirejs("jquery")(document).ready(function() {
+				
+				var INI_handleInfo = requirejs("jquery")("#INI_change_area").data("INI_handleInfo");
+
+		    	// 스토리지 정보
+				var storageId = INI_handleInfo.storageId;
+				var storageType = INI_handleInfo.storageType;
+				// 선택한 인증서 id
+				var certId = INI_handleInfo.certId;
+				
+				// 삭제할 인증서의 정보를 보여준다.
+				_ini.Certs.getCertAttributeInfo(storageId, storageType, certId, _ini.constants.Certs.CERTIFICATE_NORMAL_ATTR ,_ini.WebForm.drawCertAttrDetail);
+				
+				// 화면 텍스트 변경 
+				requirejs("jquery")("#INI_certRemoveY").val(_ini.msgFactory.getMessageFactory().WebForm().CERT_REMOVE().C_R_F_002);
+				requirejs("jquery")("#INI_secondClose").val(_ini.msgFactory.getMessageFactory().WebForm().CERT_REMOVE().C_R_F_003);
+				
+				requirejs("jquery")("#INI_C_R_F_001").text(_ini.msgFactory.getMessageFactory().WebForm().CERT_REMOVE().C_R_F_001);
+				requirejs("jquery")("#INI_C_R_F_004").text(_ini.msgFactory.getMessageFactory().WebForm().CERT_REMOVE().C_R_F_004);
+				
+				//도움말 title(한글/영문)
+    			requirejs("jquery")('#INI_cert_remove_modal_initech_help').attr("title", _ini.msgFactory.getMessageFactory().WebForm().COMMON().M_F_003);
+				
+				// 예를 클릭했을 경우 해당 인증서를 스토리지에서 삭제한다.
+				requirejs("jquery")("#INI_certRemoveY").click(function(){
+					INI_handleInfo.callback = _ini.WebForm.refreshGrid;
+					_ini.CertManager.removeCert(INI_handleInfo);
+				});
+				
+				// 모달창 닫기
+				requirejs("jquery")('#INI_secondClose').click(function(){
+					 requirejs("jquery")("#INI_subModalDialog").dialog('close');
+				});
+				requirejs("jquery")('#INI_secondModalClose').click(function(){
+					 requirejs("jquery")("#INI_subModalDialog").dialog('close');
+				});
+				
+				requirejs("jquery")("#INI_window_close_icon_IMG").attr("src", GINI_HTML5_BASE_PATH + "/res/img/btn/window_close2.png");
+			});
+		});
+	</script>
+</head>
+<body>
+    <div class="certificate_wrap">
+        <div class="certificate_popup" id="certificate_remove" style="width:400px;height:358px;">
+            <!--Title Bar-->
+            <div class="title_bar">
+                <h1 id="INI_C_R_F_001"></h1>
+                <div class="window_controll">
+                    <ul>
+                        <li class="help"><span id="INI_cert_remove_modal_initech_help">?</span></li>
+                        <li class="close"><span id="INI_secondModalClose"><img id="INI_window_close_icon_IMG" /></span></li>
+                    </ul>
+                </div>
+            </div>
+            <!--//Title Bar-->
+
+            <!--Delete Data-->
+            <div class="remove_data">
+                <div class="remove_info" id="INI_cert_single"></div>
+                <span id="INI_C_R_F_004"></span>
+                <form>
+                    <fieldset class="identify_select">
+                        <ul>
+                            <li><input type="button" class="ok" id="INI_certRemoveY" /></li>
+                            <li><input type="button" class="cancel" id="INI_secondClose" /></li>
+                        </ul>
+                    </fieldset>
+                </form>
+            </div>
+            <!--View Data-->
+        </div>
+    </div>
+</body>
+</html>

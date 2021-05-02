@@ -1,0 +1,349 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="Cache-Control" content="no-cache"/> 
+	<meta http-equiv="Expires" content="0"/>
+	<meta http-equiv="Pragma" content="no-cache"/> 
+	<title></title>
+	
+    <script type="text/javascript">
+		require([GINI_MANIFEST["cwui.js"]], function(_ini) {
+			
+			var _newPwd;
+    		var _pin;
+    		
+			// initech parameter handle object
+			var _handleInfo;
+			// 초기화
+    		function initialize(){
+    			_handleInfo = requirejs("jquery")("#INI_change_area").data("GINI_handleInfo");
+				_handleInfo.serviceInfo.setParameter("ENCRYPTED", "FALSE");
+				_handleInfo.optionInfo.setParameter("CERT_VIEW_TYPE", _ini.constants.Certs.CERTIFICATE_NORMAL_ATTR);
+				
+				_handleInfo.serviceInfo.setExceptionCallback(
+ 	 					function(){
+ 	 						_ini.KeyPad.initializeKeyPad(_handleInfo);
+ 	 					}
+				);
+				
+				_ini.StorageManage.setFocusStorage(_handleInfo.serviceInfo.getParameter("TARGET_DEVICE_ID"));//정범교
+				
+				_handleInfo.serviceInfo.setParameter("virtualCloseCallback", function (){_ini.KeyPad.initializeKeyPad(_handleInfo);});
+				
+				//정범교 주석
+				_handleInfo.serviceInfo.setBehavior(_ini.constants.WebForm.ACTION_CERT_SAVE);
+				
+				_handleInfo.serviceInfo.setParameter("KeypadFrmName" ,"keypadFrm2");
+				_ini.KeyPad.initializeKeyPad(_handleInfo);
+				
+				//저장매체 클릭 이벤트 막기
+				requirejs("jquery")("#INI_storage_list ul li a").css("pointer-events","none");
+				requirejs("jquery")("#INI_storage_list").attr("disabled", true);
+				
+				if(_handleInfo.serviceInfo.getParameter("TARGET_DEVICE_ID") === _ini.constants.Certs.STORAGE_SECURITY_TOKEN){
+					requirejs("jquery")("#INI_Cert_Pwd_AREA").hide();
+					requirejs("jquery")("#INI_Cert_Pin_AREA").show();
+				}
+    		};
+    		
+			function doCertIssueCallback(){
+				var INI_popupHandleInfo = [];
+				INI_popupHandleInfo["OK"] = function (){ _ini.WebForm.closeModal() };
+				INI_CONFIRM(_ini.msgFactory.getMessageFactory().Info.INFO_1001, "info", INI_popupHandleInfo);
+			}
+			
+			function submitIssue(){
+    			if( _handleInfo.serviceInfo.getParameter("TARGET_DEVICE_ID") === _ini.constants.Certs.STORAGE_SECURITY_TOKEN || 
+    					_handleInfo.serviceInfo.getParameter("TARGET_DEVICE_ID") === _ini.constants.Certs.STORAGE_SECURITY_DEVICE || 
+    					_handleInfo.serviceInfo.getParameter("TARGET_DEVICE_ID") === _ini.constants.Certs.STORAGE_SCARD){
+    				
+    				if(!_pin){
+     					INI_HANDLE.warnMessage(_ini.msgFactory.getMessageFactory().Warn.WARN_1030);
+     			 		requirejs("jquery")('input[name="INI_CertPin"]').focus();
+     			 		return;
+     				}
+    				
+	    			_handleInfo.serviceInfo.setParameter("PIN", _pin);
+    			} 
+    			
+    			if ( _handleInfo.serviceInfo.getParameter("TARGET_DEVICE_ID") !== _ini.constants.Certs.STORAGE_SECURITY_TOKEN){
+	    			if(!_newPwd){
+    					INI_HANDLE.warnMessage(_ini.msgFactory.getMessageFactory().Warn.WARN_1003);
+    				 	requirejs("jquery")('input[name="INI_CertPwd"]').focus();
+    				 	return;
+    				}
+	    			_handleInfo.serviceInfo.setParameter("PWD", _newPwd);
+    			}	
+    				
+	    		_newPwd = "";
+	    		_pin = "";//정범교
+   				_handleInfo.serviceInfo.setCallback(doCertIssueCallback);
+   				_handleInfo.serviceInfo.setExceptionCallback(
+ 	 					function(){
+ 	 						_ini.KeyPad.initializeKeyPad(_handleInfo);
+ 	 					}
+				);
+				
+				//정범교 
+				_ini.CertManager.saveAnotherCertificate(_handleInfo);
+			}
+			
+		
+			
+			function previousSubmit(){
+				if(_handleInfo.serviceInfo.getParameter("TARGET_DEVICE_ID") === _ini.constants.Certs.STORAGE_SECURITY_TOKEN || 
+						_handleInfo.serviceInfo.getParameter("TARGET_DEVICE_ID") === _ini.constants.Certs.STORAGE_SECURITY_DEVICE  || 
+						_handleInfo.serviceInfo.getParameter("TARGET_DEVICE_ID") === _ini.constants.Certs.STORAGE_SCARD){
+					
+					function newPinCallback(newPin){
+    					_pin = newPin;
+    					
+    					function pwdCallback(newPwd){
+    						_newPwd = newPwd;
+    						submitIssue();
+    					}
+    					
+    					if (_handleInfo.serviceInfo.getParameter("TARGET_DEVICE_ID") === _ini.constants.Certs.STORAGE_SECURITY_DEVICE  || 
+    							_handleInfo.serviceInfo.getParameter("TARGET_DEVICE_ID") === _ini.constants.Certs.STORAGE_SCARD) {
+    						
+    						setTimeout(function(){
+        						GINI_ProtectMgr.clean("NONCE");
+            					var pwdValue = requirejs("jquery")('input[name="INI_CertPwd"]').val();
+            					_handleInfo.serviceInfo.setParameter("PWD", pwdValue);
+            					_handleInfo.serviceInfo.setParameter("pwdId", "INI_CertPwd");
+            					_ini.KeyPad.getKeyPadValue(_handleInfo, pwdCallback, "NONCE");		
+        					}, 100);
+    					
+    					}else {
+	    					submitIssue();
+    					}
+    				}
+					
+    				var pin = requirejs("jquery")('input[name="INI_CertPin"]').val();
+					_handleInfo.serviceInfo.setParameter("PIN", pin);
+					_handleInfo.serviceInfo.setParameter("pwdId", "INI_CertPin");
+					_ini.KeyPad.getKeyPadValue(_handleInfo, newPinCallback, "SECURE");
+    			
+				} else {
+    				function newPwdCallback(newPwd){
+    					_newPwd = newPwd;
+    					submitIssue();
+    				}
+    				var newPwd = requirejs("jquery")('input[name="INI_CertPwd"]').val();
+    				_handleInfo.serviceInfo.setParameter("PWD", newPwd);
+    				_handleInfo.serviceInfo.setParameter("pwdId", "INI_CertPwd");
+    				_ini.KeyPad.getKeyPadValue(_handleInfo, newPwdCallback, "NONCE");
+    			}
+			};
+			
+			requirejs("jquery")(document).ready(function() {
+				
+				// ------------------- 메세지 처리 Start -------------------------------------------------------------------------------------------------------- //
+    			// --------------------------------------------------------------------------------------------------------------------------------------------- //
+				requirejs("jquery")("#INI_cert_copy_passwd_label").text(_ini.msgFactory.getMessageFactory().WebForm().TEXT().COMMON().W_T_004);
+				requirejs("jquery")("#INI_cert_copy_pin_label").text(_ini.msgFactory.getMessageFactory().WebForm().TEXT().COMMON().W_T_009);
+				requirejs("jquery")("#INI_storage_select_title").text(_ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_SEARCH().W_T_C_S_010);
+				requirejs("jquery")("#INI_CertCpm_another_desc").html(_ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_CMP().W_T_C_CMP_014);//정범교
+				
+				// 인증서 암호는 대소문자를 구분합니다.
+				requirejs("jquery")("#INI_CertPwd").attr("placeholder",_ini.msgFactory.getMessageFactory().WebForm().TEXT().COMMON().W_T_003);
+				
+				//확인 , 취소 버튼
+				requirejs("jquery")("#INI_certIssueSubmit").text(_ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_001);
+    			requirejs("jquery")("#INI_secondClose").text(_ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_002);
+    			
+				document.getElementById("INI_CertPin").setAttribute("placeholder", _ini.msgFactory.getMessageFactory().WebForm().TEXT().COMMON().W_T_015);
+				// ------------------- 메세지 처리 End --------------------------------------------------------------------------------------------------------- //
+    			// --------------------------------------------------------------------------------------------------------------------------------------------- //
+				
+    			
+    			var unbind_kepad_pw = false;    			
+    			
+    			//pin
+    			requirejs("jquery")('#INI_CertPin_tk_btn').click(function(){
+    				function inNewPinCallback(pin){
+    					_pin = pin;
+    					if (_handleInfo.serviceInfo.getParameter("TARGET_DEVICE_ID") === _ini.constants.Certs.STORAGE_SECURITY_TOKEN){
+    						submitIssue();	
+    					}
+   					}
+    				
+    				function EnterNext(){
+   						requirejs("jquery")('#INI_CertPwd_tk_btn').focus().click();				
+   	    			}
+    				
+    				requirejs("jquery")('#INI_CertPin').val("");
+    				GINI_ProtectMgr.clean("SECURE");
+    				
+    				_handleInfo.serviceInfo.setParameter("pwdId", "INI_CertPin");
+					_handleInfo.serviceInfo.setParameter("pwdElement", document.keypadFrm2.INI_CertPin);
+ 					_handleInfo.serviceInfo.setParameter("previousSubmit", inNewPinCallback);
+ 					 					
+ 					_ini.KeyPad.click(_handleInfo,"KEYPAD");
+ 					_ini.KeyPad.setEnterCallback(EnterNext);
+ 					
+ 					unbind_kepad_pw = false
+    			});
+				
+    			requirejs("jquery")('#INI_CertPin').click(function(){
+    				function inNewPinCallback(pin){
+    					_pin = pin;
+    					if (_handleInfo.serviceInfo.getParameter("TARGET_DEVICE_ID") === _ini.constants.Certs.STORAGE_SECURITY_TOKEN){
+    						submitIssue();	
+    					}
+   					}
+    				requirejs("jquery")('#INI_CertPin').val("");
+    				GINI_ProtectMgr.clean("SECURE");
+    				
+    				_handleInfo.serviceInfo.setParameter("pwdId", "INI_CertPin");
+					_handleInfo.serviceInfo.setParameter("pwdElement", document.keypadFrm2.INI_CertPin);
+ 					_handleInfo.serviceInfo.setParameter("previousSubmit", inNewPinCallback);
+ 					
+ 					_ini.KeyPad.click(_handleInfo,"KEYBOARD");
+ 					
+ 					unbind_kepad_pw = true;
+    			});
+    			    			
+    			
+				requirejs("jquery")('#INI_CertPwd_tk_btn').click(function(){
+					
+					if(unbind_kepad_pw === true){return;}
+					
+					function inNewPwdCfCallback(newPwd){
+    					_newPwd = newPwd;
+    					if(_handleInfo.serviceInfo.getParameter("TARGET_DEVICE_ID") != _ini.constants.Certs.STORAGE_SECURITY_TOKEN){
+    						submitIssue();
+    					}
+   					}
+					
+					function EnterNext(){
+   						requirejs("jquery")('#INI_certIssueSubmit').focus().click();				
+   	    			}
+					
+    				requirejs("jquery")('#INI_CertPwd').val("");
+    				GINI_ProtectMgr.clean("NONCE");
+    				
+    				_handleInfo.serviceInfo.setParameter("pwdId", "INI_CertPwd");
+					_handleInfo.serviceInfo.setParameter("pwdElement", document.keypadFrm2.INI_CertPwd);
+ 					_handleInfo.serviceInfo.setParameter("previousSubmit", inNewPwdCfCallback);
+ 					
+ 					_ini.KeyPad.click(_handleInfo,"KEYPAD");
+ 					_ini.KeyPad.setEnterCallback(EnterNext);
+    			});
+				
+				/* 가상키패드 or E2E Click */
+    			requirejs("jquery")('#INI_CertPwd').click(function(){
+    				function inNewPwdCfCallback(newPwd){
+    					_newPwd = newPwd;
+    					if(_handleInfo.serviceInfo.getParameter("TARGET_DEVICE_ID") != _ini.constants.Certs.STORAGE_SECURITY_TOKEN){
+    						submitIssue();
+    					}
+   					}
+    				requirejs("jquery")('#INI_CertPwd').val("");
+    				GINI_ProtectMgr.clean("NONCE");
+    				
+    				_handleInfo.serviceInfo.setParameter("pwdId", "INI_CertPwd");
+					_handleInfo.serviceInfo.setParameter("pwdElement", document.keypadFrm2.INI_CertPwd);
+ 					_handleInfo.serviceInfo.setParameter("previousSubmit", inNewPwdCfCallback);
+ 					
+ 					_ini.KeyPad.click(_handleInfo,"KEYBOARD");
+    			});
+				
+				
+				
+    			// 인증서 발급
+				requirejs("jquery")('#INI_certIssueSubmit').click(function(){
+					
+					var pwd = requirejs("jquery")('input[name="INI_CertPwd"]').val();
+					if(isInputPWEmpty( pwd ) && _handleInfo.serviceInfo.getParameter("TARGET_DEVICE_ID") != _ini.constants.Certs.STORAGE_SECURITY_TOKEN){
+    					INI_HANDLE.warnMessage(_ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_CMP().W_T_C_CMP_003_1);
+    				}else{
+						previousSubmit();
+    				}
+			    });
+				
+				requirejs("jquery")('[type=password]').keypress(function(e) {
+				    if(e.which == 13) {
+				    	requirejs("jquery")('#INI_certIssueSubmit').focus().click();
+			        	return false;
+				    }
+				});
+				
+				//발급 취소
+				requirejs("jquery")('#INI_secondClose').click(function(){
+					_ini.WebForm.closeModal();
+				});
+				
+				initialize();
+
+				if (_handleInfo.serviceInfo.getParameter("TARGET_DEVICE_ID") === _ini.constants.Certs.STORAGE_SECURE_TOKEN) {
+					requirejs("jquery")("#INI_Cert_Pwd_AREA").hide();
+				}else if ( _handleInfo.serviceInfo.getParameter("TARGET_DEVICE_ID") === _ini.constants.Certs.STORAGE_SECURE_DEVICE ){
+					requirejs("jquery")("#INI_Cert_Pwd_AREA").show();
+				}
+				// 선택된 source 매체 외에 다른 매체를 선택할 수 없도록 disabled 처리하기 
+			});
+		});
+	</script>
+</head>
+<body>
+<!--      <div class="certificate_view_area"> -->
+<!--          <h2 class="section_title" id="INI_cert_second_modal_title"></h2> -->
+<!--          <dl class="info_data" id="INI_cert_detail_list"> -->
+<!--              <dt class="title" id="INI_cert_second_modal_sub_title"></dt> -->
+<!--              <dd> -->
+<!--              	case1 -->
+<!--              	 <div class="summary" id="INI_cert_single"></div> -->
+             
+<!-- 				case2 -->
+<!--                 <div class="summary" id="INI_cert_single_p12" style="height:98px;display:none"> -->
+<!--                 </div> -->
+<!--              </dd> -->
+<!--          </dl> -->
+<!--      </div> -->
+     
+	<!-- 인증서 하단(버튼 등) -->
+	<fieldset>
+		<legend></legend>
+		
+		<form class="certificate_password" id="keypadFrm2" name="keypadFrm2">
+			<div class="certificate_password_area">
+				<p id="INI_CertCpm_another_desc"></p>
+				
+				<!-- pin 입력시  -->
+				<dl class="certificate_password" id="INI_Cert_Pin_AREA">
+					<dt class="section_title" id="INI_cert_copy_pin_label"></dt>
+					<dd>
+						<input type="password" title="password" id="INI_CertPin" name="INI_CertPin" />
+				        <span class="keyboard" id="INI_CertPin_tk_btn"></span>
+				    </dd>
+				</dl>
+				
+				<!-- 인증서 암호 입력 -->
+				<dl class="certificate_password" id="INI_Cert_Pwd_AREA">
+					<dt class="section_title" id="INI_cert_copy_passwd_label"></dt>
+					<dd>
+						<input type="password" title="password" id="INI_CertPwd" name="INI_CertPwd" />
+				        <span class="keyboard" id="INI_CertPwd_tk_btn"></span>
+				    </dd>
+				</dl>
+			
+			</div>
+			 
+			<!-- 버튼 영역 -->
+			<div class="confirm_btn_area">
+			    <button type="button" class="emp" id="INI_certIssueSubmit"></button>
+	   		    <button type="button" class="cancel" id="INI_secondClose"></button>
+			</div>
+			<!-- //버튼 영역 -->
+		</form>
+	</fieldset>
+	<!-- // 인증서 하단-->     
+</body>
+<!--  
+ uniwebkey 용 DIV
+-->
+<div id="w2ui-popup-uniwebkey"> 
+</div>
+</html>

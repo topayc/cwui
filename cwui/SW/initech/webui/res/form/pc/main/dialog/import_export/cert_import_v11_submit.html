@@ -1,0 +1,739 @@
+﻿<!DOCTYPE html> 
+<html> 
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-compatible" content="IE=edge,chrome=1">
+	<title></title>
+    <script type="text/javascript">
+		require([GINI_MANIFEST["cwui.js"]], function(_ini) {
+			
+			// color pack css 세팅
+    	   _ini.WebForm.getColorPackCss();
+			
+			// initech parameter handle object
+    		var _handleInfo;
+    		var limitTime;
+    		var authNum;
+    		
+    		// 초기화
+    		function initialize(){
+    			_handleInfo = requirejs("jquery")("#INI_mainModalDialog").data("GINI_handleInfo");
+    			limitTime = _ini.defaultConf.System.CertImportExportLimitTime;
+    			getAuthNum();
+    			
+    			//popup
+    			_ini.WebForm.drawCustomBanner("INI_custom_banner");
+    		};
+    		
+    		function getAuthNum(){
+				//timer
+				var timer = _ini.CertManager.importTimer.startTimer(limitTime, requirejs("jquery")('#INI_timer'));
+				if(timer){
+					_ini.CertManager.getImportAuthNum(
+						function(resultAuthNum){
+							authNum = resultAuthNum;
+							requirejs("jquery")('input[name="INI_authNum"]').eq(0).val(authNum.substring(0,4));
+							requirejs("jquery")('input[name="INI_authNum"]').eq(1).val(authNum.substring(4,8));
+							requirejs("jquery")('input[name="INI_authNum"]').prop('disabled',true);
+							requirejs("jquery")("#INI_cert_import_userPw").prop('disabled',true);
+							longPollRequest();
+						}
+					);
+				}
+			}
+			
+			function longPollRequest () {
+			    requirejs("jquery").ajax({
+			        url     : _ini.defaultConf.System.UrlAddress[_ini.constants.System.URL_CERT_RELAY_IMPORT_V11],
+			        type    : 'GET',
+			        tryCount :0,
+					retryLimit :1,
+			        cache   : false,
+			        dataType: "text",
+			        global	: false,
+ 					data : {
+ 								"SVer" : "1.1",
+ 								"Action" : "IMPORT",
+ 								"AuthNum" : authNum
+ 					},
+			        success : function(data, textStatus, jqXHR) {
+						resData = data.split('$');
+				    	if(resData[0].trim() == "ERROR"){ //IMP_NO_CERT
+							if( resData[1] == "IMP_NO_CERT" || resData[1] == "NO_CERT" ){
+								_ini.CertManager.importTimer.setLongPollTimer(setTimeout(longPollRequest, 3000));
+							} else {
+								_ini.CertManager.importTimer.resetTimer();
+							}
+						} else {
+							_ini.CertManager.importTimer.resetTimer();
+							
+							_handleInfo.serviceInfo.setParameter("IMPORT_CERT_DATA", data.trim());
+							_handleInfo.serviceInfo.setParameter("AUTH_NUM", authNum);
+							_handleInfo.serviceInfo.setCallback(importCertPriV11);
+							
+				    		_ini.CertManager.importCertPriV11(_handleInfo);
+						}
+			        },
+ 					error : function(xhr, status, error){					
+ 						this.tryCount++;
+ 						if(this.tryCount <= this.retryLimit){
+ 							requirejs("jquery").ajax(this);
+ 							return;
+ 						}
+ 						console.log(
+ 								"code:"		+xhr.status+"\n"+
+ 								"message:"	+xhr.responseText+"\n"+
+ 								"status:"	+status+"\n"+
+ 								"error:"	+error);
+ 						return;
+ 					}
+			    });
+			}
+			
+			function importCertPriV11(data, authNum){
+				_handleInfo.serviceInfo.setParameter("AUTH_NUM_CONFIRM",  data);
+				_handleInfo.serviceInfo.setParameter("AUTH_NUM", authNum);
+
+				_ini.SubForm.openForm(_handleInfo, undefined, _ini.SubForm.openSubCertImportV11);
+			}
+		
+    		requirejs("jquery")(document).ready(function() {
+    			// 로고변경
+    			_ini.WebForm.drawLogo();
+    			
+    			// title
+    			requirejs("jquery")("#INI_cert_modal_title").text(_ini.msgFactory.getMessageFactory().WebForm().TITLE().CERT_IMPORT_TITLE);
+				
+				// 화면 텍스트 변경
+				// 간편찾기 텍스트
+				requirejs("jquery")("#INI_cert_import_third_title").text(_ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_IMPORT_EXPORT().C_I_E_001);
+				requirejs("jquery")("#INI_refresh_txt").text(_ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_IMPORT_EXPORT().C_I_E_006);
+				requirejs("jquery")("#INI_cert_import_number_text").text(_ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_IMPORT_EXPORT().C_I_E_005);
+				requirejs("jquery")("#INI_cert_import_help").html(_ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_IMPORT_EXPORT().C_I_E_008);
+				requirejs("jquery")("#INI_cert_import_export_spendtime_text").text(_ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_IMPORT_EXPORT().C_I_E_009);
+				// 버튼
+				requirejs("jquery")("#INI_secondClose").text(_ini.msgFactory.getMessageFactory().WebForm().BUTTON().W_B_002);
+				requirejs("jquery")("#INI_windowClose").html('<img src="' + GINI_HTML5_BASE_PATH + '/res/img/btn/btn_close_w.png" alt="" />');
+				
+				// 인증번호 앞 4자리 , 인증번호 뒤 4자리
+				(document.getElementsByName("INI_authNum")[0]).setAttribute("title", _ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_SEARCH().W_T_C_S_012);
+				(document.getElementsByName("INI_authNum")[1]).setAttribute("title", _ini.msgFactory.getMessageFactory().WebForm().TEXT().CERT_SEARCH().W_T_C_S_013);
+				
+				requirejs("jquery")("#INI_cert_authnum_refresh").click(function(){
+					_ini.CertManager.importTimer.resetTimer();
+					getAuthNum();
+				});
+				
+				requirejs("jquery")("#INI_secondClose").click(function(){
+					_ini.CertManager.importTimer.resetTimer();
+    				_ini.WebForm.closeModal();
+				});
+				
+				requirejs("jquery")('#INI_windowClose').click(function(){
+					_ini.CertManager.importTimer.resetTimer();
+    				_ini.WebForm.closeModal();
+    			});
+				
+				initialize();
+				 requirejs("jquery")(".ico").on('click', function () {
+    				 
+	  			    	requirejs("jquery")(this).parent().children("span").trigger('click');
+	  			 });
+			});
+		});
+    </script>
+   <script type="text/javascript">
+  		require([GINI_MANIFEST["cwui.js"]], function(_ini) {
+		 
+		 	// initech parameter handle object
+	    	var _handleInfo = requirejs("jquery")("#INI_mainModalDialog").data("GINI_handleInfo");
+	    	
+	    	// 기능버튼  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+	    	
+			// close
+			requirejs("jquery")('#INI_certClose').click(function(){
+				_ini.WebForm.closeModal();
+			});
+			requirejs("jquery")('#INI_windowClose').click(function(){
+				_ini.WebForm.closeModal();
+			});
+			
+			// Caps lock 켜져 있는지 확인하고 메세지 출력해주기. *******************************
+/*			requirejs("jquery")('[type=password]').keypress( function(e){
+				alert("나좀");
+				var pStr= String.fromCharCode(e.which);
+				if( pStr.toUpperCase() === pStr && pStr.toLowerCase() !== pStr && !e.shiftKey ){
+					alert("Caps lock가 켜져 있습니다.");
+				}
+			});*/
+			// Caps lock 켜져 있는지 확인하고 메세지 출력해주기. *******************************
+			
+	    	// 인증서 간편찾기/직접찾기
+	    	requirejs("jquery")( "#INI_cert_search_btn" ).click(function(e) {
+	    		
+	    		var thisObj = requirejs("jquery")(e.currentTarget);
+				if( requirejs("jquery")( thisObj ).hasClass( 'disabled' ) ) {
+		    		return false;
+		    	}
+	    		// 브라우저 제외한 저장매체들은 직접찾기만 있음.
+	    		if(_handleInfo.serviceInfo.getDeviceId() !== _ini.constants.Certs.STORAGE_BROWSER){
+	    			_ini.SubForm.openForm(_handleInfo, undefined, _ini.SubForm.openSubCertSearchManualForm);
+	    		} else {
+	    			// 찾기 창 오픈.
+	    			_ini.SubForm.openForm(_handleInfo, undefined, _ini.SubForm.openSubCertSearchForm);
+	    		}
+	    	});
+	    	
+	    	// 인증서 상세보기
+			requirejs("jquery")( "#INI_cert_detail_info_btn" ).click(function(e) {
+				if(_handleInfo.serviceInfo.getParameter("CERT_ID")){
+					_ini.SubForm.openForm(_handleInfo, undefined, _ini.SubForm.openSubCertDetailForm);
+				}else{
+					INI_HANDLE.warnMessage(_ini.msgFactory.getMessageFactory().Warn.WARN_1015);
+				 	return;
+				}
+			});
+			
+			// 인증서 삭제
+			requirejs("jquery")('#INI_cert_remove_btn').click(function(e){
+				
+	    		var thisObj = requirejs("jquery")(e.currentTarget);
+				if( requirejs("jquery")( thisObj ).hasClass( 'disabled' ) ) {
+		    		return false;
+		    	}
+				if(_handleInfo.serviceInfo.getParameter("CERT_ID")){
+					// 인증서 삭제 창 오픈
+					_handleInfo.serviceInfo.setBehavior(_ini.constants.WebForm.ACTION_CERT_REMOVE);
+					_ini.SubForm.openForm(_handleInfo, undefined, _ini.SubForm.openSubCertRemoveForm);
+				}else{
+					INI_HANDLE.warnMessage(_ini.msgFactory.getMessageFactory().Warn.WARN_1015);
+				 	return;
+				}
+			});
+			
+	    	// 기능버튼 END * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+			
+			// TODO 인증서 목록 가져오기 
+			function selectedStorage( pId, sId ) {
+				/*alert("스토리지 선택 --> 인증서 목록 가져오기 \n"
+						+" PId:"+pId
+						+"\n sId:"+sId);*/
+//				alert( "STORAGEID : " + pId + " \n" + "SUB STORAGE ID : " + sId );
+				GINI_selectedCertificateRow = 1;
+				
+				var runStatus = _ini.CertManager.importTimer.getLongPollTimer(); 
+				if(runStatus){
+					_ini.CertManager.importTimer.resetTimer();
+				}
+				
+				var keypadName = _handleInfo.serviceInfo.getParameter("KeypadFrmName");
+				
+				_handleInfo.clear();
+				_handleInfo.serviceInfo.setDeviceId(pId);
+				_handleInfo.serviceInfo.setEventDeviceId(pId);
+				_handleInfo.serviceInfo.setDeviceSub(sId);
+				
+				_handleInfo.serviceInfo.setParameter("KeypadFrmName", keypadName);
+
+				var selectedStorage = requirejs("jquery")(".media_select").attr("selectedStorage");
+				if(!selectedStorage || selectedStorage=="N"){
+					_ini.StorageManage.storageClick(_handleInfo);
+				} 
+				if(keypadName){
+					_ini.KeyPad.initializeKeyPad(_handleInfo);
+				}
+			}
+			
+			function _procStorageClick(pId, sId){
+				
+		    	if(_ini.constants.Certs.STORAGE_USIM == pId){
+	            	_ini.WebForm.drawCertList({}, pId);
+    	        	_handleInfo.serviceInfo.setEventDeviceId(pId);
+    	        	_handleInfo.serviceInfo.setDeviceSub(pId);
+    	        	_handleInfo.serviceInfo.setCallback(
+    	        		function(){
+    	    				_handleInfo.stateInfo.setResult("CONFIRM");
+    	    				// close
+    	    				_ini.WebForm.closeModal();
+    	    			}
+    	        	);
+    	        	
+    	        	if(_ini.constants.WebForm.ACTION_LOGIN === _handleInfo.serviceInfo.getBehavior()){
+    	        		_ini.Login.doLogin(_handleInfo);	    	        	
+    	        	} else {
+    	        		_ini.Signature.doSign(_handleInfo);
+    	        	}
+	            } else if(_ini.constants.Certs.STORAGE_PHONE == pId && _ini.constants.Certs.STORAGE_PHONE_MOBISIGN == sId){
+	            	_ini.WebForm.drawCertList({}, pId);
+    	        	_handleInfo.serviceInfo.setEventDeviceId(pId);
+    	        	_handleInfo.serviceInfo.setDeviceSub(sId);
+    	        	_handleInfo.serviceInfo.setCallback(
+    	        		function(){
+    	    				_handleInfo.stateInfo.setResult("CONFIRM");
+    	    				// close
+    	    				_ini.WebForm.closeModal();
+    	    			}
+    	        	);
+    	        	
+    	        	if(_ini.constants.WebForm.ACTION_LOGIN === _handleInfo.serviceInfo.getBehavior()){
+    	        		_ini.Login.doLogin(_handleInfo);	    	        	
+    	        	} else {
+    	        		_ini.Signature.doSign(_handleInfo);
+    	        	}	            	
+	            } else {	            	
+            		selectedStorage(pId, sId);
+	            }
+		    }
+			
+	    	function appendSubMediaList(thisObjId, targetParentNode, drawType) {
+				GINI_selectedCertificateRow = 1;
+				
+				var keypadName = _handleInfo.serviceInfo.getParameter("KeypadFrmName");
+				var preDeviceId = _handleInfo.serviceInfo.getDeviceId();
+				_handleInfo.serviceInfo.setParameter("KeypadFrmName", keypadName);
+				_handleInfo.serviceInfo.setEventDeviceId(thisObjId);
+				_handleInfo.serviceInfo.setDeviceId(preDeviceId);
+				_handleInfo.serviceInfo.setParameter("TargetParentNode", targetParentNode);
+				_handleInfo.serviceInfo.setParameter("DrawType", drawType);	// 인증서 복사시 사용, 매체 창이 별도로 뜸.	
+//				alert("targetParentNode : " + targetParentNode);
+				_ini.WebForm.drawStorageSubList(_handleInfo);
+			}
+	    	
+	    	function appendExtMediaList(){
+	    		_ini.WebForm.drawStorageExtList('INI_storage_ext_list', _handleInfo.serviceInfo.getBehavior());
+	    	}
+	    	
+	    	// 저장매체 선택 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+			
+		 	requirejs("jquery")('a').on('click', function(){
+		        if(requirejs("jquery")(this).attr('href') =='javascript:void(null);return false;'){
+		            return false;
+		        }
+		 	});
+		 	
+		 	// 저장매체 선택 
+			requirejs("jquery")('.media_select_area .media_list>li').each( function(){
+				
+		        var th = requirejs("jquery")(this);
+		        var media = requirejs("jquery")('.media_list>li').not(th);
+		        var m = requirejs("jquery")('>a', th)
+		        var sub = requirejs("jquery")('.drive_select', th);
+		        var chk = requirejs("jquery")('<span class="check">'+_ini.msgFactory.getMessageFactory().WebForm().TEXT().COMMON().W_T_018+'</span>');
+		        var sc = false;
+		        var sId = "";		
+		        var targetParentNode = "";
+		       
+		        m.on('click', function(){
+		        	var noCertTitle = "<tr><td colspan ='4' style='text-align:center;background-color:#e5ecff;'>"
+		        									+"<span class='no_data active' style='font-weight:bold;text-align:center;color:#1b066f;'>"
+		        									+_ini.msgFactory.getMessageFactory().WebForm().TEXT().COMMON().W_T_022
+		        									+"</span>"
+		        									+"</td></tr>";
+		        	requirejs("jquery")("#" + _ini.constants.WebForm.CERT_TABLE + " tbody").html( noCertTitle );
+		            var tm = requirejs("jquery")(this);
+		            media.removeClass('open list_select').find('.check').remove();
+		            tm.append(chk);
+		            
+		            // 해당 아이디에 대한 하위 매체
+		     		sId = tm.parent().closest('li').find('span').attr('id');
+		     		targetParentNodeId = sId;
+		     		
+		     		function callback(version){
+			    		if(version === true || "NOT_INSTALL" !== version){
+				           
+			    			// 하위 매체
+				            if( sub.length > 0){
+				                // 하위 매체가 있을 경우
+				            	
+				            	// 1. 하위매체 목록 get
+				            	appendSubMediaList(sId, "#" + targetParentNodeId);
+				            	
+				            	// 2. 하위매체 목록 show 
+				                th.removeClass('list_select').addClass('open');
+				                requirejs("jquery")('.drive_select').not(sub.show()).hide();
+				                if(sc == false){
+				                    sub.find('ul').mCustomScrollbar();
+				                    sc = true;
+				                }
+				                requirejs("jquery")('.extension_layer').hide();
+				            }else if(th.hasClass('media_extension')){
+				                    // 확장 매체일 경우
+				                    th.removeClass('list_select').addClass('open');
+				                    // 확장 매체 get 
+				                    appendExtMediaList(sId, targetParentNodeId);
+				                    requirejs("jquery")('.extension_layer').show();
+				                    tm.parent().siblings('li').find('.drive_select').hide();
+				            }else{
+				                // 하위 매체 없을 경우
+				                th.addClass('list_select');
+				                requirejs("jquery")('.drive_select').hide();
+				                requirejs("jquery")('.extension_layer').hide();
+				                _procStorageClick(sId, undefined);
+				            }
+				            
+			    		}else{
+			    			INI_HANDLE.infoMessage(_ini.msgFactory.getMessageFactory().Info.INFO_1009);
+			    		}
+			    	};
+			    	
+			    	if(targetParentNodeId != _ini.constants.Certs.STORAGE_BROWSER){
+			    		_ini.Version.installed(callback);			    		
+			    	} else {
+			    		// 하위 매체 없을 경우
+		                th.addClass('list_select');
+		                requirejs("jquery")('.drive_select').hide();
+		                requirejs("jquery")('.extension_layer').hide();
+		                _procStorageClick(sId, undefined);
+			    	}
+			    	
+		            return false;
+		        });
+		    });
+		 
+			 // TODO KJK -- 확장매체선택
+			 requirejs("jquery")('.media_select_area .media_select #INI_storage_ext_list').on('click', 'ul li a', function (e) {
+			
+			 	var tm = requirejs("jquery")(this);
+				var sId = tm.parent().closest('li').find('span').attr('id');
+		 		var targetParentNodeId = tm.parent().closest('li').find('span').attr('id');
+		 		
+		 		
+		        var ds = requirejs("jquery")(this).siblings('.drive_select');
+		        var html = requirejs("jquery")('<span class="check">'+_ini.msgFactory.getMessageFactory().WebForm().TEXT().COMMON().W_T_018+'</span>');
+		        var dsc = false;
+
+		        requirejs("jquery")(this).parent().siblings('.list_data').find('.check').remove().end().removeClass('list_select');
+		        requirejs("jquery")(this).parent().addClass('list_select');
+		        requirejs("jquery")(this).append(html);
+		        
+		        if(ds.length >0){
+		        	// 하위매체 목록 가져와서 붙이기
+			 		appendSubMediaList(sId, "#" + targetParentNodeId);
+		            ds.show();
+		            if(dsc == false){
+		                ds.find('ul').mCustomScrollbar({ 
+		                			mouseWheel:true
+		                			,mouseWheelPixcels: 50
+		                	
+		                });
+		                dsc = true;
+		            }
+		        }else if(tm.parent().attr("id")){
+		        	sId	= tm.parent().attr("id");
+		        	var pId	= tm.parent().parent().parent().closest('li').find('span').attr('id');
+		            requirejs("jquery")('.media_extension').removeClass('open').addClass('list_select');
+		            requirejs("jquery")(".extension_layer").hide();
+		            requirejs("jquery")('.drive_select').hide();
+		            _procStorageClick(pId , sId);
+		        }else{
+		        	sId	= tm.children().attr("id");
+		        	var pId	= tm.parent().closest('li').find('span').attr('id');
+		            requirejs("jquery")('.media_extension').removeClass('open').addClass('list_select');
+		            requirejs("jquery")(".extension_layer").hide();
+		            requirejs("jquery")('.drive_select').hide();
+		            
+		            _procStorageClick(pId , sId);
+		            
+		        }
+		        return false;
+		    });
+		    		
+			 
+		    //인증서 List 선택 Active
+		    requirejs("jquery")('#INI_certificate_area #INI_certList').on('click', 'tr', function (e) {
+
+		    	GINI_selectedCertificateRow = requirejs("jquery")('tr', requirejs("jquery")(this).closest("table")).index(this);
+		    	
+		    	var thisObj = requirejs("jquery")(e.currentTarget);
+		    	thisObj.addClass('active');
+		        var id = thisObj.closest("tr").attr("id");	// pk
+				if(id == undefined){
+					_handleInfo.serviceInfo.setParameter("CERT_ID", null);
+					return;
+				} else {
+					_handleInfo.serviceInfo.setParameter("CERT_ID", id);
+				}
+				requirejs("jquery")('.certificate_list_area table tr').not(requirejs("jquery")(this).addClass('active')).removeClass('active');
+	            requirejs("jquery")(this).parents('.table_wrap').addClass('cert_selected');
+				
+		    });
+		    
+		    if(requirejs("jquery")(".certificate_list_area table").find('.active').length>0){
+		        requirejs("jquery")('.table_wrap').addClass('cert_selected');
+		    }
+		    
+		    // 하위 매체 선택(확장매체 하위 포함아님 )
+		    requirejs("jquery")('.media_select_area .media_select .drive_select').each(function(){
+		        var drive = requirejs("jquery")(this);
+		        var par = drive.parent('.list_data');
+		        var gpa = par.parent();
+		        var dm = drive.find('ul li a');
+		        drive.on('click','ul li a',  function(){
+		        	
+		        	// 부모,하위 매체 아이디
+		    		var parentStorageId = par.closest('li').find('span').attr('id');
+					var sId = requirejs("jquery")(this).parent().closest('li').attr('id');
+		        	
+		            if(gpa.hasClass('extension_media_list')){
+		                //확장매체일때
+		                requirejs("jquery")('.extension_layer').hide();
+		                requirejs("jquery")('.media_extension').removeClass('open').addClass('list_select');
+		            }else{
+		                par.removeClass('open').addClass('list_select');
+		            }
+		            drive.hide();
+		            
+		            _procStorageClick(parentStorageId,sId);
+		            return false;
+		        });
+		    });
+		    
+		    
+		    // 인증서 복사  : 저장위치 선택  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+		    
+		    requirejs("jquery")('.save_media_list>li').each(function(){
+		    	
+		        var th = requirejs("jquery")(this);
+		        var media = requirejs("jquery")('.save_media_list>li').not(th);
+		        var m = requirejs("jquery")('>a', th)
+		        var sub = requirejs("jquery")('.save_drive_select', th);
+		        var chk = requirejs("jquery")('<span class="check">'+_ini.msgFactory.getMessageFactory().WebForm().TEXT().COMMON().W_T_018+'</span>');
+		        
+		        var sc = false;
+		        var sId = "";       
+		        var targetParentNode = "";
+		       
+		        m.on('click', function(){
+		            var tm = requirejs("jquery")(this);
+
+		            media.removeClass('media_open media_selected').find('.check').remove();
+		            tm.append(chk);
+		            
+		            // 해당 아이디에 대한 하위 매체
+		            sId = tm.parent().closest('li').find('span').attr('id');
+		            targetParentNodeId = sId;
+		            
+		            // 하위 매체
+		            if( sub.length > 0){
+		                // 1. 하위매체 목록 get
+		                appendSubMediaList(sId, "#INI_target_storage_list #" + targetParentNodeId, "INI_POPUP");
+		                
+		                // 2. 하위매체 목록 show 
+		                th.removeClass('media_selected').addClass('media_open');
+		                requirejs("jquery")('.save_drive_select').not(sub.show()).hide();
+		                if(sc == false){
+		                    sub.find('ul').mCustomScrollbar();
+		                    sc = true;
+		                }
+		                requirejs("jquery")('.save_extension_layer').hide();
+		            }else{
+		                // 하위 매체 없을 경우, 확장매체 클릭시
+		            	if(th.closest('li').hasClass('save_media_extension')){
+		                    // 확장 매체일 경우 
+	            			// TODO
+	            			th.removeClass('media_open media_selected').find('span.check').remove();
+		                    th.removeClass('media_selected').addClass('media_open');
+		                    // 확장 매체 get 
+		                    appendExtMediaList(sId, targetParentNodeId);
+		                    requirejs("jquery")('.save_drive_select').show();
+		                    if(sc == false){
+			                    sub.find('ul').mCustomScrollbar();
+			                    sc = true;
+			                }
+			                requirejs("jquery")('.save_extension_layer').hide();
+//		                    requirejs("jquery")('.save_extension_layer').show();
+//		                    tm.parent().siblings('li').find('.save_drive_select').hide();
+	                    }else{
+	                    	if( _openCopyForm(sId, undefined) ){
+	                    		th.addClass('media_selected');
+	                    		requirejs("jquery")('.save_drive_select').hide();
+	                    		requirejs("jquery")('.save_extension_layer').hide();	
+	                    	}else{
+	                    		th.removeClass('media_open media_selected').find('span.check').remove();
+	                    	}
+	                    }
+		            }
+		            return false;
+		        });
+		    });
+		    
+		     // 확장매체선택
+		    requirejs("jquery")(".save_extension_layer .save_media>a").on('click', function () {
+		        var ds = requirejs("jquery")(this).siblings('.save_drive_select');
+		        var html = requirejs("jquery")('<span class="check">'+_ini.msgFactory.getMessageFactory().WebForm().TEXT().COMMON().W_T_018+'</span>');
+
+		        requirejs("jquery")(this).parent().siblings('.save_media').find('.check').remove().end().removeClass('media_selected');
+		        requirejs("jquery")(this).parent().addClass('media_selected');
+		        requirejs("jquery")(this).append(html);
+
+		        if(ds.length >0){
+		            ds.show();
+		            ds.find('ul').mCustomScrollbar();
+		        }else{
+		            requirejs("jquery")('.save_media_extension').removeClass('media_open').addClass('media_selected');
+		            requirejs("jquery")(".save_extension_layer").hide();
+		            requirejs("jquery")('.save_drive_select').hide();
+		        }
+		        return false;
+		    });
+		    // 확장매체 닫기
+		    requirejs("jquery")(".save_extension_layer .close_btn").on('click', function () {
+		        requirejs("jquery")('.save_media_extension').removeClass('media_open').find('.check').remove();;
+		        requirejs("jquery")('.extension_save_media_list .save_media').removeClass('media_selected').find('.check').remove();
+		        requirejs("jquery")('.save_drive_select').hide();
+		        requirejs("jquery")(".save_extension_layer").hide();
+		        return false;
+		    });
+
+		    /* 인증서 복사창 하위매체 선택 */
+		    requirejs("jquery")('.media_select_area .save_media_list .save_drive_select').on('click', 'ul li a', function(){
+		    	var drive = requirejs("jquery")(this);
+		    	var par = drive.parent('li').closest('.save_media');
+		    	
+		    	// 부모, 하위 매체 아이디 
+		    	var parentStorageId = par.children('a:first-child').find('span').attr('id');
+		    	var sId = drive.parent().closest('li').attr('id');
+				
+//		    	alert("pid:" + parentStorageId); //부모 아이디값(예. 이동식디스크, 보안토큰등) 
+//				alert("sid:" + sId);
+		    		
+		    	_openCopyForm(parentStorageId, sId);
+	            return false;
+		    });
+		    
+		    function _openCopyForm(parentStorageId, sId){
+		    	
+		    	if( _isValidTargetMedia(parentStorageId) ){
+		    		requirejs("jquery")("#INI_drawDialog").dialog('close');
+		    		
+		    		_handleInfo.serviceInfo.setParameter("SOURCE_DEVICE_ID", _handleInfo.serviceInfo.getDeviceId());
+					_handleInfo.serviceInfo.setParameter("SOURCE_DEVICE_SUB", _handleInfo.serviceInfo.getDeviceSub());
+					
+		    		_handleInfo.serviceInfo.setParameter("TARGET_DEVICE_ID", parentStorageId);
+		    		_handleInfo.serviceInfo.setParameter("TARGET_DEVICE_SUB_ID", sId );
+//		    		_handleInfo.serviceInfo.setParameter("TARGET_PIN", pwd);
+		    		
+		    		_ini.SubForm.openForm(_handleInfo, undefined, _ini.SubForm.openSubCertCopyForm);
+		    		return true;
+		    	}else{
+		    		return false;
+		    	}
+		    }
+		    
+		    function _isValidTargetMedia( targetMedia, isSub ){
+			    
+		    	var sourceMedia = "";
+		    	if( isSub != undefined && isSub === true ){
+		    		sourceMedia = _handleInfo.serviceInfo.getDeviceSub();
+		    	}else{
+		    		sourceMedia = _handleInfo.serviceInfo.getDeviceId();
+		    	}
+		    		
+		    	if( sourceMedia == targetMedia ){
+		    		INI_HANDLE.warnMessage(_ini.msgFactory.getMessageFactory().Warn.WARN_1026);
+		    		return false;
+		    	}
+		    	return true;
+		    }
+		    
+		    //인증서 선택 리사이즈 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+		    requirejs("jquery")(function () {
+		        requirejs("jquery")(".certificate_list_area table").colResizable();
+		    });
+		    
+		    // 선택 목록
+		    requirejs("jquery")('.select_list li').each(function(){
+		        var m = requirejs("jquery")(this).find('a');
+		        var s = requirejs("jquery")('<span class="sr-only">'+_ini.msgFactory.getMessageFactory().WebForm().TEXT().COMMON().W_T_018+'</span>');
+		        m.on('click', function(){
+		            var sib = requirejs("jquery")('.select_list li a').not(requirejs("jquery")(this));
+		            requirejs("jquery")(this).addClass('selected').append(s);
+		            sib.removeClass('selected').find('.sr-only').remove();
+		        });
+		    });
+		    
+		    
+	 });
+  		
+  		</script>
+  <!--  
+	<script type="text/javascript">
+		var head = document.getElementsByTagName('head')[0];
+		var script1 = document.createElement('script');
+		script1.src = GINI_HTML5_BASE_PATH + "/cw/html5/script/common/certificate.js";
+		head.appendChild(script1);
+    </script>
+    -->
+</head>
+
+<body>
+    <div id="initech_certificate_wrap">
+        <div class="certificate">
+            <div class="window">
+               	<!-- title 영역 -->
+	            <div class="title_area">
+	                <div class="title">
+	                    <h1 id="INI_cert_modal_title"></h1>
+	                    <a class="window_close" id="INI_windowClose"></a>
+	                </div>
+	                <!-- banner -->
+	                <div class="banner" id="INI_modal_logo">
+	               	</div>
+	                <!-- // banner -->
+	            </div>
+	            <!-- // title 영역 -->
+				
+				<!-- 인증 영역 -->
+				<div class="window_data_area" id="certificate_find">
+					<!-- 인증서 가져오기 -->
+					<h2 class="section_title" id="INI_cert_import_third_title"></h2>
+					<div class="find_certificate certificate_export">
+						<div>
+							<span class="icon import"></span>
+							<p id="INI_cert_import_help"></p>
+							<p><b class="fs12">(<span id="INI_cert_import_export_spendtime_text"></span> : <em class="em" id="INI_timer">00: 00</em>)</b></p>
+						</div>
+						<form class="find_simple_enter">
+							<fieldset>
+								<legend></legend>
+								<div class="input_field2">
+									<label for="cert" id="INI_cert_import_number_text"></label>
+									<input type="text" class="number" value="" name="INI_authNum" maxlength="4" />
+									<input type="text" class="number" value="" name="INI_authNum" maxlength="4" />
+									<button type="button" class="btn_ref" id="INI_cert_authnum_refresh">
+										<i class="ico ref"></i><span id="INI_refresh_txt" style="cursor: pointer;"></span>
+									</button>
+								</div>
+							</fieldset>
+						</form>
+					</div>
+	                <!-- // 인증서 가져오기 -->
+	                <!-- 버튼 영역 -->
+					<div class="confirm_btn_area">
+                        <button type="button" class="cancel" id="INI_secondClose"></button>
+					</div>
+	                <!-- //버튼 영역 -->
+                </div>
+
+		        <!-- EVENT DIV -->
+				<div id="INI_change_area" style="display: none;">
+				</div>  
+				               
+			</div>
+			<!-- 광고 영역 -->
+			<!-- width 조절이 필요한경우 auto 대신 px 값 입력. 입력하지 않을 경우 이미지 사이트만큼 -->
+			<div class="custom_banner" style="width:auto;">
+				<a id="INI_banner_close" class="banner_close" onclick="requirejs("jquery")('.custom_banner').hide();" style="display: none;"></a>
+				<div id="INI_custom_banner"></div>
+			</div>
+		</div>
+		
+	</div>
+	
+</body>
+<!--  
+ uniwebkey 용 DIV
+-->
+<div id="w2ui-popup-uniwebkey"> 
+</div>
+</html>
